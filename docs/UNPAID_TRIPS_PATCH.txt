@@ -1,0 +1,23 @@
+// PATCH INSTRUCTIONS FOR /apps/web/src/app/reports/unpaid-trips/page.jsx
+// 
+// 1. Add this import after line 18 (after the useTrips import):
+import { ResendInvoiceButton } from "@/components/Reports/ResendInvoiceButton";
+
+// 2. In the table header (around line 366), add this new column header AFTER "Last Link Sent":
+                        <th className="px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+
+// 3. In the table body (around line 540), add this new cell AFTER the "Last Link Sent" cell:
+                            {/* Actions */}
+                            <td className="px-4 py-3">
+                              {!isCash && (
+                                <ResendInvoiceButton
+                                  trip={trip}
+                                  onSuccess={handleModalSuccess}
+                                />
+                              )}
+                            </td>
+
+// 4. In the tfoot subtotal row (around line 570), change the colSpan from 2 to 3:
+                        <td colSpan={3} />

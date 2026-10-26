@@ -1,0 +1,66 @@
+// Patch file: Add these exact lines to /apps/web/src/app/earnings/page.jsx
+
+// =========================================================================
+// STEP 1: ADD TO IMPORTS (after line 24, before lazy-load comment)
+// =========================================================================
+import { ADPSubmissionModal } from "@/components/ADPSubmissionModal";
+import { Building2 } from "lucide-react";
+
+// =========================================================================
+// STEP 2: ADD STATE (inside EarningsPage function, after line 452)
+// =========================================================================
+// ADP Submission Modal state
+const [showADPModal, setShowADPModal] = useState(false);
+
+// =========================================================================
+// STEP 3: REPLACE PRINT BUTTON SECTION (around line 565-577)
+// Find this code:
+// =========================================================================
+/*
+{report && (
+  <button
+    onClick={handlePrint}
+    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+  >
+    <Printer size={16} />
+    Print
+  </button>
+)}
+*/
+
+// Replace with:
+{report && (
+  <div className="flex items-center gap-2">
+    {isAllDrivers && (
+      <button
+        onClick={() => setShowADPModal(true)}
+        className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <Building2 size={16} />
+        Submit to ADP
+      </button>
+    )}
+    <button
+      onClick={handlePrint}
+      className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+    >
+      <Printer size={16} />
+      Print
+    </button>
+  </div>
+)}
+
+// =========================================================================
+// STEP 4: ADD MODAL COMPONENT (right before the final </>, around line 1058)
+// Add this right after the TripModal closing tag:
+// =========================================================================
+{/* ADP Submission Modal */}
+{showADPModal && isAllDrivers && report && (
+  <ADPSubmissionModal
+    report={report}
+    periodLabel={periodLabel}
+    startDate={start}
+    endDate={end}
+    onClose={() => setShowADPModal(false)}
+  />
+)}

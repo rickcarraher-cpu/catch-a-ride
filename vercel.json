@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/payments/square/cron",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/trips/auto-complete",
+      "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/data/backup/cron",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/reminders/send-5pm",
+      "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cleanup/old-communications/cron",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}

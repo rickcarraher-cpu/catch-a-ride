@@ -1,0 +1,21 @@
+// Patch instructions for /apps/web/src/app/timesheet-report/page.jsx
+//
+// 1. Add to imports (after line 22):
+import { useTimesheetApproval } from "@/hooks/useTimesheetApproval";
+import { TimesheetApprovalButtons } from "@/components/TimesheetApprovalButtons";
+
+// 2. Add after the useQuery hook (around line 690):
+const { handleApprove, handleReject, isApproving } = useTimesheetApproval({
+  report,
+  customStart,
+  endDate: customEnd,
+});
+
+// 3. In the driver section JSX (around line 1040, inside driversWithTrips.map),
+// add the approval buttons in the driver header, right after the NET PAYROLL display:
+<TimesheetApprovalButtons
+  driver={d}
+  onApprove={handleApprove}
+  onReject={handleReject}
+  isApproving={isApproving}
+/>

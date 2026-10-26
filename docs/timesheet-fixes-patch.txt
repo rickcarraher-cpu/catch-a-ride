@@ -1,0 +1,76 @@
+## PATCH FOR /apps/web/src/app/timesheet-report/page.jsx
+## Fixes for Edit Trip and Paid/Unpaid Status
+
+### FIX 1: Paid/Unpaid Trip Logic (around line 120)
+REPLACE:
+```javascript
+const paidTrips = trips.filter((t) => t.paid);
+const unpaidTrips = trips.filter((t) => !t.paid);
+```
+
+WITH:
+```javascript
+// Use balance_due to determine paid status (more accurate than trip.paid)
+const paidTrips = trips.filter((t) => {
+  const balanceDue = parseFloat(t.balance_due);
+  return !isNaN(balanceDue) ? balanceDue <= 0 : t.paid;
+});
+const unpaidTrips = trips.filter((t) => {
+  const balanceDue = parseFloat(t.balance_due);
+  const isPaid = !isNaN(balanceDue) ? balanceDue <= 0 : t.paid;
+  return !isPaid;
+});
+```
+
+### FIX 2: Edit Trip Button (around line 271 and 284)
+The onEditTrip function is being passed the entire trip object instead of trip.id.
+We need to:
+1. Change the button onClick to pass trip.id instead of trip
+2. Update the onEditTrip handler to fetch the full trip data
+
+REPLACE buttons (in both paid and unpaid trip tables):
+```javascript
+<button
+  onClick={() => onEditTrip(trip)}
+  ...
+>
+```
+
+WITH:
+```javascript
+<button
+  onClick={() => onEditTrip(trip.id)}
+  ...
+>
+```
+
+### FIX 3: Update onEditTrip handler (around line 990-1020)
+The handler needs to fetch the full trip data before passing to TripModal.
+
+FIND the driversWithTrips.map section and the onEditTrip handler definition.
+UPDATE to match the pattern from /apps/web/src/app/reports/by-driver/page.jsx:
+
+```javascript
+const handleEditTrip = async (tripId) => {
+  try {
+    // Fetch full trip data
+    const response = await fetch(`/api/appointments/${tripId}`);
+    if (!response.ok) throw new Error('Failed to fetch trip');
+    const tripData = await response.json();
+    
+    // Set the trip data and open modal
+    setEditingTrip(tripData);
+    setIsModalOpen(true);
+  } catch (err) {
+    console.error('Failed to open trip:', err);
+    alert('Could not load trip details');
+  }
+};
+```
+
+Then pass this handler down to DriverSection components.
+
+### SUMMARY:
+1. Trips are now correctly marked as paid when balance_due <= $0 (not just trip.paid)
+2. Edit button now properly fetches the full trip data before opening the modal
+3. This matches the working implementation in /apps/web/src/app/reports/by-driver/page.jsx
