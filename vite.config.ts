@@ -4,14 +4,14 @@ import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { defineConfig } from 'vite';
 import babel from 'vite-plugin-babel';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { addRenderIds } from './plugins/addRenderIds.ts';
-import { aliases } from './plugins/aliases.ts';
-import consoleToParent from './plugins/console-to-parent.ts';
-import { layoutWrapperPlugin } from './plugins/layouts.ts';
-import { loadFontsFromTailwindSource } from './plugins/loadFontsFromTailwindSource.ts';
-import { nextPublicProcessEnv } from './plugins/nextPublicProcessEnv.ts';
-import { restart } from './plugins/restart.ts';
-import { restartEnvFileChange } from './plugins/restartEnvFileChange.ts';
+// import { addRenderIds } from './plugins/addRenderIds.ts';
+// import { aliases } from './plugins/aliases.ts';
+// import consoleToParent from './plugins/console-to-parent.ts';
+// import { layoutWrapperPlugin } from './plugins/layouts.ts';
+// import { loadFontsFromTailwindSource } from './plugins/loadFontsFromTailwindSource.ts';
+// import { nextPublicProcessEnv } from './plugins/nextPublicProcessEnv.ts';
+// import { restart } from './plugins/restart.ts';
+// import { restartEnvFileChange } from './plugins/restartEnvFileChange.ts';
 export default defineConfig({
   // Keep them available via import.meta.env.NEXT_PUBLIC_*
   envPrefix: 'NEXT_PUBLIC_',
@@ -33,8 +33,8 @@ export default defineConfig({
   },
   logLevel: 'info',
   plugins: [
-    nextPublicProcessEnv(),
-    restartEnvFileChange(),
+    // nextPublicProcessEnv(),
+    // restartEnvFileChange(),
     reactRouterHonoServer({
       serverEntryPoint: './__create/index.ts',
       runtime: 'node',
@@ -49,23 +49,23 @@ export default defineConfig({
         plugins: ['styled-jsx/babel'],
       },
     }),
-    restart({
-      restart: [
-        'src/**/page.jsx',
-        'src/**/page.tsx',
-        'src/**/layout.jsx',
-        'src/**/layout.tsx',
-        'src/**/route.js',
-        'src/**/route.ts',
-      ],
-    }),
-    consoleToParent(),
-    loadFontsFromTailwindSource(),
-    addRenderIds(),
+    // restart({
+    //   restart: [
+    //     'src/**/page.jsx',
+    //     'src/**/page.tsx',
+    //     'src/**/layout.jsx',
+    //     'src/**/layout.tsx',
+    //     'src/**/route.js',
+    //     'src/**/route.ts',
+    //   ],
+    // }),
+    // consoleToParent(),
+    // loadFontsFromTailwindSource(),
+    // addRenderIds(),
     reactRouter(),
     tsconfigPaths(),
-    aliases(),
-    layoutWrapperPlugin(),
+    // aliases(),
+    // layoutWrapperPlugin(),
   ],
   resolve: {
     alias: {
