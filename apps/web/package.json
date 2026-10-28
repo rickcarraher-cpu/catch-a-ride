@@ -1,5 +1,10 @@
-"scripts": {
-  "dev": "react-router dev",
-  "build": "react-router build",
-  "typecheck": "react-router typegen && tsc --noEmit"
-},
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "typecheck": "react-router typegen && tsc --noEmit"
+  }
+}
