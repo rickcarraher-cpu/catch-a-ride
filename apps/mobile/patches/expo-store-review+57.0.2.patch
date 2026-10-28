@@ -1,0 +1,273 @@
+diff --git a/node_modules/expo-store-review/build/ExpoStoreReview.d.ts b/node_modules/expo-store-review/build/ExpoStoreReview.d.ts
+index 00e8119..ed3992e 100644
+--- a/node_modules/expo-store-review/build/ExpoStoreReview.d.ts
++++ b/node_modules/expo-store-review/build/ExpoStoreReview.d.ts
+@@ -1,6 +1,9 @@
+ declare const _default: Partial<{
+     isAvailableAsync: () => Promise<boolean>;
+     requestReview: () => Promise<void>;
++    prePromptReview: () => Promise<void>;
++    resetReviewState: () => Promise<void>;
++    hasUserRated: () => Promise<boolean>;
+ }>;
+ export default _default;
+ //# sourceMappingURL=ExpoStoreReview.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/expo-store-review/build/ExpoStoreReview.native.js b/node_modules/expo-store-review/build/ExpoStoreReview.native.js
+index 39755d3..fe3dd29 100644
+--- a/node_modules/expo-store-review/build/ExpoStoreReview.native.js
++++ b/node_modules/expo-store-review/build/ExpoStoreReview.native.js
+@@ -1,3 +1,4 @@
+ import { requireNativeModule } from 'expo-modules-core';
+-export default requireNativeModule('ExpoStoreReview');
++
++export default globalThis && globalThis.expo && globalThis.expo.modules && globalThis.expo.modules.ExpoStoreReview ? requireNativeModule('ExpoStoreReview') : {};
+ //# sourceMappingURL=ExpoStoreReview.native.js.map
+\ No newline at end of file
+diff --git a/node_modules/expo-store-review/build/StoreReview.d.ts b/node_modules/expo-store-review/build/StoreReview.d.ts
+index 00cf30a..0f91d73 100644
+--- a/node_modules/expo-store-review/build/StoreReview.d.ts
++++ b/node_modules/expo-store-review/build/StoreReview.d.ts
+@@ -7,6 +7,25 @@
+  * - On Web, it will resolve to `false`.
+  */
+ export declare function isAvailableAsync(): Promise<boolean>;
++/**
++ * Shows a pre-prompt alert asking the user if they'd like to rate the app. If they select "Yes",
++ * it will then show the native store review prompt. This is useful for improving review conversion rates.
++ * Currently only available on iOS.
++ */
++export declare function prePromptReview(): Promise<void>;
++/**
++ * Resets the review state stored in UserDefaults. This allows you to clear the
++ * tracking of whether the user has already been prompted for a review.
++ * Currently only available on iOS.
++ */
++export declare function resetReviewState(): Promise<void>;
++/**
++ * Checks whether the user has already rated the app (i.e., they selected "Rate Now"
++ * in the pre-prompt dialog). This can be used to conditionally show or hide rating prompts.
++ * Currently only available on iOS.
++ * @return A promise that resolves to true if the user has rated, false otherwise.
++ */
++export declare function hasUserRated(): Promise<boolean>;
+ /**
+  * In ideal circumstances this will open a native modal and allow the user to select a star rating
+  * that will then be applied to the App Store, without leaving the app. If the device is running
+diff --git a/node_modules/expo-store-review/build/StoreReview.js b/node_modules/expo-store-review/build/StoreReview.js
+index 5ddf98b..232423f 100644
+--- a/node_modules/expo-store-review/build/StoreReview.js
++++ b/node_modules/expo-store-review/build/StoreReview.js
+@@ -15,6 +15,47 @@ export async function isAvailableAsync() {
+     return StoreReview.isAvailableAsync?.() ?? false;
+ }
+ // @needsAudit
++/**
++ * Shows a pre-prompt alert asking the user if they'd like to rate the app. If they select "Yes",
++ * it will then show the native store review prompt. This is useful for improving review conversion rates.
++ * Currently only available on iOS.
++ */
++export async function prePromptReview() {
++    if (StoreReview?.prePromptReview) {
++        return StoreReview.prePromptReview();
++    }
++    // Fallback: if prePromptReview is not available, just do nothing
++    // (This will be the case on web and Android)
++}
++// @needsAudit
++/**
++ * Resets the review state by clearing the last review request timestamp and rating status.
++ * This is useful for testing or if you want to allow the review prompt to be shown again
++ * regardless of the normal rate limiting. Currently only available on iOS.
++ */
++export async function resetReviewState() {
++    if (StoreReview?.resetReviewState) {
++        return StoreReview.resetReviewState();
++    }
++    // Fallback: if resetReviewState is not available, just do nothing
++    // (This will be the case on web and Android)
++}
++// @needsAudit
++/**
++ * Checks whether the user has already rated the app (i.e., they selected "Rate Now"
++ * in the pre-prompt dialog). This can be used to conditionally show or hide rating prompts.
++ * Currently only available on iOS.
++ * @return A promise that resolves to true if the user has rated, false otherwise.
++ */
++export async function hasUserRated() {
++    if (StoreReview?.hasUserRated) {
++        return StoreReview.hasUserRated();
++    }
++    // Fallback: if hasUserRated is not available, return false
++    // (This will be the case on web and Android)
++    return false;
++}
++// @needsAudit
+ /**
+  * In ideal circumstances this will open a native modal and allow the user to select a star rating
+  * that will then be applied to the App Store, without leaving the app. If the device is running
+diff --git a/node_modules/expo-store-review/ios/StoreReviewModule.swift b/node_modules/expo-store-review/ios/StoreReviewModule.swift
+index 50d8222..3365472 100644
+--- a/node_modules/expo-store-review/ios/StoreReviewModule.swift
++++ b/node_modules/expo-store-review/ios/StoreReviewModule.swift
+@@ -1,5 +1,8 @@
+ import ExpoModulesCore
+ import StoreKit
++import UIKit
++
++private let HAS_RATED_KEY = "anything_has_rated"
+ 
+ public class StoreReviewModule: Module {
+   public func definition() -> ModuleDefinition {
+@@ -9,6 +12,50 @@ public class StoreReviewModule: Module {
+       return !isRunningFromTestFlight()
+     }
+ 
++    AsyncFunction("prePromptReview") { @MainActor in
++      if isRunningFromTestFlight() {
++        return
++      }
++
++      let defaults = UserDefaults.standard
++
++      if defaults.bool(forKey: HAS_RATED_KEY) {
++        return
++      }
++
++      guard let currentScene = getForegroundActiveScene() else {
++        throw MissingCurrentWindowSceneException()
++      }
++
++      let keyWindow = currentScene.windows.first(where: { $0.isKeyWindow })
++      guard let rootVC = keyWindow?.rootViewController else {
++        throw MissingCurrentWindowSceneException()
++      }
++
++      let alert = UIAlertController(
++        title: "Thanks for using Anything!",
++        message: "Share what you love about Anything in the App Store. Your review will help us reach more people.",
++        preferredStyle: .alert
++      )
++
++      let noAction = UIAlertAction(title: "No Thanks", style: .cancel, handler: nil)
++
++      let yesAction = UIAlertAction(title: "Rate Now", style: .default) { _ in
++        defaults.set(true, forKey: HAS_RATED_KEY)
++
++        if #available(iOS 16.0, *) {
++          AppStore.requestReview(in: currentScene)
++        } else {
++          SKStoreReviewController.requestReview(in: currentScene)
++        }
++      }
++
++      alert.addAction(noAction)
++      alert.addAction(yesAction)
++
++      rootVC.present(alert, animated: true, completion: nil)
++    }
++
+     AsyncFunction("requestReview") { @MainActor () async throws in
+       guard let currentScene = getForegroundActiveScene() else {
+         // If no valid foreground scene is found, throw an exception
+@@ -21,6 +68,16 @@ public class StoreReviewModule: Module {
+         SKStoreReviewController.requestReview(in: currentScene)
+       }
+     }
++
++    AsyncFunction("resetReviewState") {
++      let defaults = UserDefaults.standard
++      defaults.removeObject(forKey: HAS_RATED_KEY)
++    }
++
++    AsyncFunction("hasUserRated") { () -> Bool in
++      let defaults = UserDefaults.standard
++      return defaults.bool(forKey: HAS_RATED_KEY)
++    }
+   }
+ 
+   @MainActor
+@@ -33,12 +90,7 @@ public class StoreReviewModule: Module {
+     return false
+     #endif
+ 
+-    // For apps distributed through TestFlight or intalled from Xcode the receipt file is named "StoreKit/sandboxReceipt"
+-    // instead of "StoreKit/receipt"
+     let isSandboxEnv = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+-
+-    // Apps distributed through TestFlight or the App Store will not have an embedded provisioning profile
+-    // Source: https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles#Profile-location
+     return isSandboxEnv && !hasEmbeddedMobileProvision()
+   }
+ 
+diff --git a/node_modules/expo-store-review/src/ExpoStoreReview.ts b/node_modules/expo-store-review/src/ExpoStoreReview.ts
+index cb9ee95..94b9581 100644
+--- a/node_modules/expo-store-review/src/ExpoStoreReview.ts
++++ b/node_modules/expo-store-review/src/ExpoStoreReview.ts
+@@ -2,4 +2,7 @@
+ export default {} as Partial<{
+   isAvailableAsync: () => Promise<boolean>;
+   requestReview: () => Promise<void>;
++  prePromptReview: () => Promise<void>;
++  resetReviewState: () => Promise<void>;
++  hasUserRated: () => Promise<boolean>;
+ }>;
+diff --git a/node_modules/expo-store-review/src/StoreReview.ts b/node_modules/expo-store-review/src/StoreReview.ts
+index a9b9094..570caa6 100644
+--- a/node_modules/expo-store-review/src/StoreReview.ts
++++ b/node_modules/expo-store-review/src/StoreReview.ts
+@@ -17,6 +17,20 @@ export async function isAvailableAsync(): Promise<boolean> {
+   return StoreReview.isAvailableAsync?.() ?? false;
+ }
+ 
++// @needsAudit
++/**
++ * Shows a pre-prompt alert asking the user if they'd like to rate the app. If they select "Yes",
++ * it will then show the native store review prompt. This is useful for improving review conversion rates.
++ * Currently only available on iOS.
++ */
++export async function prePromptReview(): Promise<void> {
++  if (StoreReview?.prePromptReview) {
++    return StoreReview.prePromptReview();
++  }
++  // Fallback: if prePromptReview is not available, just do nothing
++  // (This will be the case on web and Android)
++}
++
+ // @needsAudit
+ /**
+  * In ideal circumstances this will open a native modal and allow the user to select a star rating
+@@ -78,3 +92,33 @@ export function storeUrl(): string | null {
+ export async function hasAction(): Promise<boolean> {
+   return !!storeUrl() || (await isAvailableAsync());
+ }
++
++// @needsAudit
++/**
++ * Resets the review state stored in UserDefaults. This allows you to clear the
++ * tracking of whether the user has already been prompted for a review.
++ * Currently only available on iOS.
++ */
++export async function resetReviewState(): Promise<void> {
++  if (StoreReview?.resetReviewState) {
++    return StoreReview.resetReviewState();
++  }
++  // Fallback: if resetReviewState is not available, just do nothing
++  // (This will be the case on web and Android)
++}
++
++// @needsAudit
++/**
++ * Checks whether the user has already rated the app (i.e., they selected "Rate Now"
++ * in the pre-prompt dialog). This can be used to conditionally show or hide rating prompts.
++ * Currently only available on iOS.
++ * @return A promise that resolves to true if the user has rated, false otherwise.
++ */
++export async function hasUserRated(): Promise<boolean> {
++  if (StoreReview?.hasUserRated) {
++    return StoreReview.hasUserRated();
++  }
++  // Fallback: if hasUserRated is not available, return false
++  // (This will be the case on web and Android)
++  return false;
++}

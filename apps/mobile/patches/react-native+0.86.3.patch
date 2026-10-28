@@ -1,0 +1,70 @@
+diff --git a/node_modules/react-native/index.js b/node_modules/react-native/index.js
+index a4b7d5e..78868bb 100644
+--- a/node_modules/react-native/index.js
++++ b/node_modules/react-native/index.js
+@@ -393,6 +393,9 @@ module.exports = {
+     return require('./src/private/components/virtualview/VirtualView')
+       .VirtualViewMode;
+   },
++  get Slider() {
++    return require('@react-native-community/slider').default;
++  },
+   // #endregion
+ } as ReactNativePublicAPI;
+ 
+@@ -458,19 +461,4 @@ if (__DEV__) {
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access Slider. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access Slider. */
+-  Object.defineProperty(module.exports, 'Slider', {
+-    configurable: true,
+-    get() {
+-      invariant(
+-        false,
+-        'Slider has been removed from react-native core. ' +
+-          "It can now be installed and imported from '@react-native-community/slider' instead of 'react-native'. " +
+-          'See https://github.com/callstack/react-native-slider',
+-      );
+-    },
+-  });
+ }
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
+@@ -400,7 +400,14 @@
+         // See https://github.com/reactwg/react-native-new-architecture/discussions/276#discussioncomment-12567155
+         throw convertNSExceptionToJSError(runtime, exception, std::string{moduleName}, methodNameStr);
+       } else {
+-        @throw exception;
++        // Cannot rethrow C++ exceptions from async dispatch - nothing can
++        // catch them. Log the error for debugging purposes instead of
++        // crashing.
++        RCTLogError(
++            @"Exception thrown while invoking async method %s.%s: %@",
++            moduleName,
++            methodNameStr.c_str(),
++            exception);
+       }
+     } @finally {
+       [retainedObjectsForInvocation removeAllObjects];
+@@ -460,9 +467,14 @@
+     @try {
+       [inv invokeWithTarget:strongModule];
+     } @catch (NSException *exception) {
+-      // Void methods are always async, re-throw instead of converting to
+-      // JSError, same as the async branch in performMethodInvocation.
+-      @throw exception;
++      // Void methods are always async. Cannot rethrow C++ exceptions from
++      // async dispatch - nothing can catch them. Log the error for debugging
++      // purposes instead of crashing.
++      RCTLogError(
++          @"Exception thrown while invoking void method %s.%s: %@",
++          moduleName,
++          methodNameStr.c_str(),
++          exception);
+     } @finally {
+       [retainedObjectsForInvocation removeAllObjects];
+     }
