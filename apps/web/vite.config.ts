@@ -1,101 +1,99 @@
-import path from 'node:path';
-import { reactRouter } from '@react-router/dev/vite';
-import { reactRouterHonoServer } from 'react-router-hono-server/dev';
-import { defineConfig } from 'vite';
-import babel from 'vite-plugin-babel';
-import tsconfigPaths from 'vite-tsconfig-paths';
-import { addRenderIds } from './plugins/addRenderIds';
-import { aliases } from './plugins/aliases';
-import consoleToParent from './plugins/console-to-parent';
-import { layoutWrapperPlugin } from './plugins/layouts';
-import { loadFontsFromTailwindSource } from './plugins/loadFontsFromTailwindSource';
-import { nextPublicProcessEnv } from './plugins/nextPublicProcessEnv';
-import { restart } from './plugins/restart';
-import { restartEnvFileChange } from './plugins/restartEnvFileChange';
-
-export default defineConfig({
-  // Keep them available via import.meta.env.NEXT_PUBLIC_*
-  envPrefix: 'NEXT_PUBLIC_',
-  assetsInclude: ['**/*.md'],
-  optimizeDeps: {
-    // Explicitly include fast-glob, since it gets dynamically imported and we
-    // don't want that to cause a re-bundle.
-    include: ['fast-glob', 'lucide-react'],
-    exclude: [
-      '@hono/auth-js/react',
-      '@hono/auth-js',
-      '@auth/core',
-      '@hono/auth-js',
-      'hono/context-storage',
-      '@auth/core/errors',
-      'fsevents',
-      'lightningcss',
-    ],
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev",
+    "typecheck": "react-router typegen && tsc --noEmit"
   },
-  logLevel: 'info',
-  plugins: [
-    nextPublicProcessEnv(),
-    restartEnvFileChange(),
-    reactRouterHonoServer({
-      serverEntryPoint: './__create/index.ts',
-      runtime: 'node',
-    }),
-    babel({
-      include: ['src/**/*.{js,jsx,ts,tsx}'], // or RegExp: /src\/.*\.[tj]sx?$/
-      exclude: /node_modules/, // skip everything else
-      babelConfig: {
-        babelrc: false, // don’t merge other Babel files
-        configFile: false,
-        presets: ['@babel/preset-typescript'],
-        plugins: ['styled-jsx/babel'],
-      },
-    }),
-    restart({
-      restart: [
-        'src/**/page.jsx',
-        'src/**/page.tsx',
-        'src/**/layout.jsx',
-        'src/**/layout.tsx',
-        'src/**/route.js',
-        'src/**/route.ts',
-      ],
-    }),
-    consoleToParent(),
-    loadFontsFromTailwindSource(),
-    addRenderIds(),
-    reactRouter(),
-    tsconfigPaths(),
-    aliases(),
-    layoutWrapperPlugin(),
-  ],
-  resolve: {
-    alias: {
-      lodash: 'lodash-es',
-      'npm:stripe': 'stripe',
-      stripe: path.resolve(__dirname, './src/__create/stripe'),
-      '@auth/create/react': '@hono/auth-js/react',
-      '@auth/create': path.resolve(__dirname, './src/__create/@auth/create'),
-      '@': path.resolve(__dirname, 'src'),
-    },
-    dedupe: ['react', 'react-dom'],
+  "dependencies": {
+    "@auth/core": "^0.37.2",
+    "@babel/generator": "^7.27.1",
+    "@chakra-ui/react": "2.8.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@emotion/react": "11.11.4",
+    "@emotion/styled": "11.11.0",
+    "@hono/auth-js": "^1.0.15",
+    "@lshay/ui": "^0.1.32",
+    "@neondatabase/serverless": "^0.10.4",
+    "@react-aria/button": "^3.13.1",
+    "@react-router/fs-routes": "^7.6.0",
+    "@react-router/node": "^7.6.0",
+    "@react-router/serve": "^7.6.0",
+    "@tanstack/react-query": "^5.72.2",
+    "@tanstack/react-table": "^8.21.2",
+    "@types/babel__core": "^7.20.5",
+    "@vis.gl/react-google-maps": "^0.8.3",
+    "argon2": "^0.43.0",
+    "classnames": "^2.5.1",
+    "clean-stack": "^5.2.0",
+    "cmdk": "^1.1.1",
+    "color2k": "^2.0.3",
+    "date-fns": "^4.1.0",
+    "downshift": "^9.0.9",
+    "html-to-image": "^1.11.13",
+    "isbot": "^5.1.27",
+    "lodash-es": "^4.17.21",
+    "lucide-react": "0.358.0",
+    "motion": "^12.7.4",
+    "papaparse": "^5.5.2",
+    "pdfjs-dist": "4.2.67",
+    "react": "^18.2.0",
+    "react-colorful": "^5.6.1",
+    "react-day-picker": "^9.6.7",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.55.0",
+    "react-idle-timer": "^5.7.2",
+    "react-markdown": "^6.0.3",
+    "react-resizable-panels": "^2.1.7",
+    "react-router": "^7.6.0",
+    "react-router-dom": "^7.6.0",
+    "react-router-hono-server": "^2.13.0",
+    "recharts": "^2.12.0",
+    "remark-gfm": "4.0.0",
+    "serialize-error": "^12.0.0",
+    "sonner": "^2.0.3",
+    "stripe": "^18.2.1",
+    "styled-jsx": "^5.1.7",
+    "tailwind-merge": "^3.2.0",
+    "three": "^0.175.0",
+    "vanilla-colorful": "^0.7.2",
+    "vaul": "^1.1.2",
+    "ws": "^8.18.2",
+    "yup": "^1.6.1",
+    "zustand": "^5.0.3"
   },
-  clearScreen: false,
-  server: {
-    allowedHosts: true,
-    host: '0.0.0.0',
-    port: 4000,
-    fs: {
-      allow: ['..', '../../shared'],
-    },
-    hmr: {
-      overlay: false,
-    },
-    warmup: {
-      clientFiles: [
-        './src/app/**/*.{js,jsx,ts,tsx}',
-        './src/app/root.tsx',
-        './src/app/routes.ts',
-      ],
-    },
+  "devDependencies": {
+    "@babel/core": "^7.27.1",
+    "@babel/plugin-transform-react-jsx": "^7.27.1",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
+    "@babel/traverse": "^7.27.1",
+    "@babel/types": "^7.27.1",
+    "@react-router/dev": "^7.6.0",
+    "@tailwindcss/vite": "^4.1.4",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@types/micromatch": "^4.0.9",
+    "@types/node": "^20",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@types/ws": "^8.18.1",
+    "autoprefixer": "^10.4.21",
+    "babel-plugin-react-require": "^4.0.3",
+    "fast-glob": "^3.3.3",
+    "jsdom": "^26.1.0",
+    "micromatch": "^4.0.8",
+    "postcss": "^8.5.3",
+    "tailwindcss": "3",
+    "typescript": "^6.0.3",
+    "vite": "^6.3.3",
+    "vite-plugin-babel": "^1.3.1",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   },
-});
+  "overrides": {
+    "next-themes": "^0.3.0"
+  }
+}
