@@ -2,6 +2,8 @@ import BookingButton from "../src/components/BookingButton";
 import StatusMessage from "../src/components/StatusMessage";
 import PhoneLink from "../src/components/PhoneLink";
 import HoursInfo from "../src/components/HoursInfo";
+import ServiceArea from "../src/components/ServiceArea";
+import ContactEmail from "../src/components/ContactEmail";
 
 export default function Page() {
   return (
@@ -13,6 +15,8 @@ export default function Page() {
       <StatusMessage />
       <PhoneLink />
       <HoursInfo />
+      <ServiceArea />
+      <ContactEmail />
     </div>
   );
 }
