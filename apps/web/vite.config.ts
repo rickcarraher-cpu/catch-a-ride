@@ -1,6 +1,7 @@
-import { reactRouter } from '@react-router/dev/vite';
-import { defineConfig } from 'vite';
+import type { Config } from '@react-router/dev/config';
 
-export default defineConfig({
-  plugins: [reactRouter()],
-});
+export default {
+  appDirectory: 'src/app',
+  ssr: true,
+  prerender: false,
+} satisfies Config;
