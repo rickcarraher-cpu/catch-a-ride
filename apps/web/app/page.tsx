@@ -1,4 +1,4 @@
-import BookingButton from "../src/components/BookingButton";
+iimport BookingButton from "../src/components/BookingButton";
 import StatusMessage from "../src/components/StatusMessage";
 import PhoneLink from "../src/components/PhoneLink";
 import HoursInfo from "../src/components/HoursInfo";
