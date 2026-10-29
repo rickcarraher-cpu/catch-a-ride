@@ -7,6 +7,7 @@ import ContactEmail from "../src/components/ContactEmail";
 import AirportNote from "../src/components/AirportNote";
 import FooterNote from "../src/components/FooterNote";
 import SafetyNote from "../src/components/SafetyNote";
+import PaymentNote from "../src/components/PaymentNote";
 
 export default function Page() {
   return (
@@ -23,6 +24,7 @@ export default function Page() {
       <AirportNote />
       <FooterNote />
       <SafetyNote />
+      <PaymentNote />
     </div>
   );
 }
