@@ -1,4 +1,5 @@
 import BookingButton from "../src/components/BookingButton";
+import StatusMessage from "../src/components/StatusMessage";
 
 export default function Page() {
   return (
@@ -7,6 +8,7 @@ export default function Page() {
       <p>The page is loading.</p>
       <p>Book a ride or check your booking status.</p>
       <BookingButton />
+      <StatusMessage />
     </div>
   );
 }
