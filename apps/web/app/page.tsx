@@ -1,5 +1,6 @@
 import BookingButton from "../src/components/BookingButton";
 import StatusMessage from "../src/components/StatusMessage";
+import PhoneLink from "../src/components/PhoneLink";
 
 export default function Page() {
   return (
@@ -9,6 +10,7 @@ export default function Page() {
       <p>Book a ride or check your booking status.</p>
       <BookingButton />
       <StatusMessage />
+      <PhoneLink />
     </div>
   );
 }
