@@ -1,4 +1,10 @@
-import { Outlet, Links, Meta, Scripts, ScrollRestoration } from "react-router";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from "react-router";
 
 export default function App() {
   return (
@@ -10,8 +16,6 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <h1>Catch A Ride – Minimal Test</h1>
-        <p>If you see this, the Vercel build is working.</p>
         <Outlet />
         <ScrollRestoration />
         <Scripts />
