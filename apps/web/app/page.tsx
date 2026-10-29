@@ -1,34 +1,17 @@
-import BookingButton from "../src/components/BookingButton";
-import StatusMessage from "../src/components/StatusMessage";
-import PhoneLink from "../src/components/PhoneLink";
-import HoursInfo from "../src/components/HoursInfo";
-import ServiceArea from "../src/components/ServiceArea";
-import ContactEmail from "../src/components/ContactEmail";
-import AirportNote from "../src/components/AirportNote";
-import FooterNote from "../src/components/FooterNote";
-import SafetyNote from "../src/components/SafetyNote";
-import PaymentNote from "../src/components/PaymentNote";
-import CancelNote from "../src/components/CancelNote";
-import LuggageNote from "../src/components/LuggageNote";
+"use client";
+import { useEffect } from "react";
 
-export default function Page() {
+export default function HomePage() {
+  useEffect(() => {
+    window.location.href = "/account/signin";
+  }, []);
+
   return (
-    <div>
-      <h1>Catch A Ride</h1>
-      <p>The page is loading.</p>
-      <p>Book a ride or check your booking status.</p>
-      <BookingButton />
-      <StatusMessage />
-      <PhoneLink />
-      <HoursInfo />
-      <ServiceArea />
-      <ContactEmail />
-      <AirportNote />
-      <FooterNote />
-      <SafetyNote />
-      <PaymentNote />
-      <CancelNote />
-      <LuggageNote />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900">
+      <div className="text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-white border-r-transparent"></div>
+        <p className="mt-4 text-white">Loading...</p>
+      </div>
     </div>
   );
 }
