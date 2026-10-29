@@ -5,8 +5,12 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 
 export default function App() {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang="en">
       <head>
@@ -16,7 +20,9 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Outlet />
+        <QueryClientProvider client={queryClient}>
+          <Outlet />
+        </QueryClientProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
