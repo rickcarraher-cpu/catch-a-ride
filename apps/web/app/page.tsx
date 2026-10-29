@@ -1,6 +1,11 @@
 "use client";
+import { useEffect } from "react";
 
 export default function HomePage() {
+  useEffect(() => {
+    window.location.href = "/account/signin";
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900">
       <div className="text-center">
