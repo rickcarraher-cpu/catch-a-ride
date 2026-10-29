@@ -4,6 +4,8 @@ import PhoneLink from "../src/components/PhoneLink";
 import HoursInfo from "../src/components/HoursInfo";
 import ServiceArea from "../src/components/ServiceArea";
 import ContactEmail from "../src/components/ContactEmail";
+import AirportNote from "../src/components/AirportNote";
+import FooterNote from "../src/components/FooterNote";
 
 export default function Page() {
   return (
@@ -17,6 +19,8 @@ export default function Page() {
       <HoursInfo />
       <ServiceArea />
       <ContactEmail />
+      <AirportNote />
+      <FooterNote />
     </div>
   );
 }
