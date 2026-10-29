@@ -1,6 +1,7 @@
 import BookingButton from "../src/components/BookingButton";
 import StatusMessage from "../src/components/StatusMessage";
 import PhoneLink from "../src/components/PhoneLink";
+import HoursInfo from "../src/components/HoursInfo";
 
 export default function Page() {
   return (
@@ -11,6 +12,7 @@ export default function Page() {
       <BookingButton />
       <StatusMessage />
       <PhoneLink />
+      <HoursInfo />
     </div>
   );
 }
