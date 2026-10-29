@@ -3,6 +3,7 @@ export default function Page() {
     <div>
       <h1>Catch A Ride</h1>
       <p>The page is loading.</p>
+      <p>Book a ride or check your booking status.</p>
     </div>
   );
 }
