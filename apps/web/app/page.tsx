@@ -6,6 +6,7 @@ import ServiceArea from "../src/components/ServiceArea";
 import ContactEmail from "../src/components/ContactEmail";
 import AirportNote from "../src/components/AirportNote";
 import FooterNote from "../src/components/FooterNote";
+import SafetyNote from "../src/components/SafetyNote";
 
 export default function Page() {
   return (
@@ -21,6 +22,7 @@ export default function Page() {
       <ContactEmail />
       <AirportNote />
       <FooterNote />
+      <SafetyNote />
     </div>
   );
 }
