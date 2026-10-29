@@ -8,6 +8,8 @@ import AirportNote from "../src/components/AirportNote";
 import FooterNote from "../src/components/FooterNote";
 import SafetyNote from "../src/components/SafetyNote";
 import PaymentNote from "../src/components/PaymentNote";
+import CancelNote from "../src/components/CancelNote";
+import LuggageNote from "../src/components/LuggageNote";
 
 export default function Page() {
   return (
@@ -25,6 +27,8 @@ export default function Page() {
       <FooterNote />
       <SafetyNote />
       <PaymentNote />
+      <CancelNote />
+      <LuggageNote />
     </div>
   );
 }
