@@ -1,0 +1,19 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: #182338; background: #f3f6fb; }
+.signin-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: linear-gradient(135deg, #2563eb, #172554); }
+.signin-card { width: 100%; max-width: 440px; background: white; border-radius: 20px; padding: 36px; box-shadow: 0 20px 60px #0003; }
+h1 { margin: 8px 0; font-size: 30px; }
+p { line-height: 1.5; }
+.brand { color: #1d4ed8; font-weight: 700; }
+label { display: block; margin: 18px 0 8px; font-weight: 600; }
+input { width: 100%; border: 1px solid #94a3b8; border-radius: 8px; padding: 12px; font: inherit; }
+input:focus-visible, button:focus-visible { outline: 3px solid #60a5fa; outline-offset: 3px; }
+input[readonly] { background: #f1f5f9; }
+button { width: 100%; margin-top: 20px; border: 0; border-radius: 8px; padding: 12px 18px; background: #1d4ed8; color: white; font: inherit; font-weight: 600; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+.secondary { background: transparent; color: #475569; margin-top: 8px; }
+.error { background: #fef2f2; color: #991b1b; padding: 12px; border-radius: 8px; }
+.dashboard { max-width: 1000px; margin: auto; padding: 32px 24px; }
+.dashboard header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.dashboard button { margin-top: 0; }
+.panel { margin-top: 28px; background: white; border-radius: 12px; padding: 24px; overflow-wrap: anywhere; }

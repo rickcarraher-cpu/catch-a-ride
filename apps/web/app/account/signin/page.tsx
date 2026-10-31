@@ -1,80 +1,68 @@
-"use client";
 import { useState } from "react";
+import { Form, data, redirect, useActionData, useNavigation } from "react-router";
+import type { ActionFunctionArgs } from "react-router";
+import { logAuthFailure } from "../../lib/auth-diagnostics.server";
+import { getAuth, logPreviewSchema } from "../../lib/auth.server";
+import { requireSameOrigin } from "../../lib/auth-core.server";
+
+const noStoreHeaders = { "Cache-Control": "no-store" };
+export async function action({ request }: ActionFunctionArgs) {
+  requireSameOrigin(request);
+  if (request.method !== "POST") throw new Response("Method not allowed", { status: 405 });
+  const form = await request.formData();
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const password = String(form.get("password") ?? "");
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password || password.length > 1024) {
+    return data({ error: "Enter a valid email and password." }, { status: 400, headers: noStoreHeaders });
+  }
+  let result;
+  try { result = await getAuth().signIn(email, password); }
+  catch (error) {
+    logAuthFailure(error);
+    await logPreviewSchema();
+    return data({ error: "Sign-in is temporarily unavailable. Please try again later." }, { status: 503, headers: noStoreHeaders });
+  }
+  if (result.kind === "limited") {
+    return data({ error: "Too many attempts. Try again in 15 minutes." }, {
+      status: 429, headers: { ...noStoreHeaders, "Retry-After": "900" },
+    });
+  }
+  if (result.kind === "invalid") return data({ error: "Invalid email or password." }, { status: 401, headers: noStoreHeaders });
+  return redirect("/dashboard", { headers: { ...noStoreHeaders, "Set-Cookie": result.cookie } });
+}
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [step, setStep] = useState("email");
-
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    setStep("password");
-  };
-
-  if (step === "password") {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900">
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Sign In</h1>
-            <p className="mt-2 text-sm text-gray-600">Enter your password</p>
-          </div>
-          <form className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full rounded-lg border border-gray-200 px-4 py-3 text-lg outline-none focus:border-blue-500"
-              />
-            </div>
-            <button
-              type="button"
-              className="w-full rounded-lg bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep("email")}
-              className="w-full text-center text-sm text-gray-500 hover:text-gray-700"
-            >
-              ← Back to Email
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
+  const [email, setEmail] = useState("");
+  const result = useActionData<typeof action>();
+  const busy = useNavigation().state !== "idle";
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
-          <p className="mt-2 text-sm text-gray-600">Enter your email to sign in</p>
-        </div>
-        <form onSubmit={handleEmailSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="w-full rounded-lg border border-gray-200 px-4 py-3 text-lg outline-none focus:border-blue-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-base font-medium text-white hover:bg-blue-700"
-          >
-            Continue
-          </button>
-        </form>
-      </div>
-    </div>
+    <main className="signin-shell">
+      <section className="signin-card" aria-labelledby="signin-title">
+        <p className="brand">Catch A Ride</p>
+        <h1 id="signin-title">{step === "email" ? "Welcome" : "Sign In"}</h1>
+        <p>{step === "email" ? "Enter your email to sign in." : "Enter your password."}</p>
+        {result?.error && <p role="alert" className="error">{result.error}</p>}
+        {step === "email" ? (
+          <form onSubmit={(event) => { event.preventDefault(); setStep("password"); }}>
+            <label htmlFor="email">Email</label>
+            <input id="email" name="email" type="email" autoComplete="username" required maxLength={254}
+              value={email} onChange={(event) => setEmail(event.target.value)} />
+            <button type="submit">Continue</button>
+          </form>
+        ) : (
+          <Form method="post">
+            <label htmlFor="signin-email">Email</label>
+            <input id="signin-email" type="email" name="email" autoComplete="username" value={email} readOnly />
+            <label htmlFor="password">Password</label>
+            <input id="password" type="password" name="password" autoComplete="current-password" required maxLength={1024} autoFocus />
+            <button type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign In"}</button>
+            <button className="secondary" type="button" disabled={busy} onClick={() => setStep("email")}>← Back to Email</button>
+          </Form>
+        )}
+      </section>
+    </main>
   );
 }
+
+export function headers() { return { "Cache-Control": "no-store" }; }
