@@ -126,3 +126,28 @@ test("dashboard redirects signed-out visitors and does not cache personalized da
 test("short signing secrets are rejected", () => {
   assert.throws(() => createAuth(driver, "short", true), /AUTH_SECRET/);
 });
+
+test("diagnostic logs classify database failures without leaking error contents", async () => {
+  const { authFailureReason, logAuthFailure } = await import("../app/lib/auth-diagnostics.server");
+  const oldDatabase = process.env.DATABASE_URL;
+  const oldSecret = process.env.AUTH_SECRET;
+  const originalLog = console.error;
+  const captured: unknown[][] = [];
+  process.env.DATABASE_URL = "test-only-placeholder";
+  process.env.AUTH_SECRET = secret;
+  console.error = (...args: unknown[]) => { captured.push(args); };
+  try {
+    assert.equal(authFailureReason({ code: "42P01" }), "missing_database_table");
+    assert.equal(authFailureReason({ code: "28P01" }), "database_password_rejected");
+    assert.equal(authFailureReason({ code: "__proto__" }), "unclassified_authentication_failure");
+    logAuthFailure({ code: "42P01", message: "PRIVATE_CONNECTION_STRING", detail: "PRIVATE_PASSWORD", stack: "PRIVATE_STACK" });
+    logAuthFailure({ code: "PRIVATE_CODE", message: "PRIVATE_MESSAGE" });
+    assert.ok(!JSON.stringify(captured).includes("PRIVATE"));
+    delete process.env.AUTH_SECRET;
+    assert.equal(authFailureReason(new Error("PRIVATE")), "missing_auth_secret");
+  } finally {
+    console.error = originalLog;
+    if (oldDatabase === undefined) delete process.env.DATABASE_URL; else process.env.DATABASE_URL = oldDatabase;
+    if (oldSecret === undefined) delete process.env.AUTH_SECRET; else process.env.AUTH_SECRET = oldSecret;
+  }
+});

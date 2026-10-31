@@ -8,7 +8,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   try {
     if (!request.headers.get("Cookie")?.includes("car_session=")) return redirect("/account/signin", { headers: { "Cache-Control": "no-store" } });
     user = await getAuth().getUser(request);
-  } catch { throw authUnavailable(); }
+  } catch (error) { throw authUnavailable(error); }
   if (!user) return redirect("/account/signin", { headers: { "Cache-Control": "no-store" } });
   return Response.json({ user }, { headers: { "Cache-Control": "no-store" } });
 }

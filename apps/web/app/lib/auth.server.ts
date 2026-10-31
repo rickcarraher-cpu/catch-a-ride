@@ -1,4 +1,5 @@
 import pg from "pg";
+import { logAuthFailure } from "./auth-diagnostics.server";
 import { createAuth } from "./auth-core.server";
 
 let auth: ReturnType<typeof createAuth> | undefined;
@@ -13,8 +14,8 @@ export function getAuth() {
   }
   return auth;
 }
-export function authUnavailable() {
-  console.error("Authentication unavailable: check database connectivity, schema and server configuration.");
+export function authUnavailable(error: unknown) {
+  logAuthFailure(error);
   return new Response("Sign-in is temporarily unavailable. Please try again later.", {
     status: 503, headers: { "Cache-Control": "no-store" },
   });

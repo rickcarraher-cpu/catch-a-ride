@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Form, data, redirect, useActionData, useNavigation } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
+import { logAuthFailure } from "../../lib/auth-diagnostics.server";
 import { getAuth } from "../../lib/auth.server";
 import { requireSameOrigin } from "../../lib/auth-core.server";
 
@@ -16,8 +17,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   let result;
   try { result = await getAuth().signIn(email, password); }
-  catch {
-    console.error("Sign-in unavailable: check database connectivity, schema and server configuration.");
+  catch (error) {
+    logAuthFailure(error);
     return data({ error: "Sign-in is temporarily unavailable. Please try again later." }, { status: 503, headers: noStoreHeaders });
   }
   if (result.kind === "limited") {
