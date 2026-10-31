@@ -4,3 +4,10 @@
 # React Router
 /.react-router/
 /build/
+
+# Local credentials
+.env
+.env.*
+!.env.example
+
+/.vercel/
