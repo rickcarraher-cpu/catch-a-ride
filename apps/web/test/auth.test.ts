@@ -151,3 +151,83 @@ test("diagnostic logs classify database failures without leaking error contents"
     if (oldSecret === undefined) delete process.env.AUTH_SECRET; else process.env.AUTH_SECRET = oldSecret;
   }
 });
+
+test("password reset token is private, expiring, single-use, and revokes sessions", async () => {
+  const { createPasswordReset } = await import("../app/lib/password-reset-core.server");
+  await database.exec(await readFile(new URL("../db/002-password-reset.sql", import.meta.url), "utf8"));
+  const mail: { email: string; link: string }[] = [];
+  const reset = createPasswordReset(driver, async (email, link) => { mail.push({email, link}); }, "https://preview.example");
+  const original = await auth.signIn(email, password);
+  assert.equal(original.kind, "success");
+  await reset.request(email.toUpperCase());
+  assert.equal(mail.length, 1);
+  assert.equal(mail[0].email, email);
+  const url = new URL(mail[0].link);
+  assert.equal(url.origin, "https://preview.example");
+  assert.equal(url.search, "");
+  const token = url.hash.slice(1);
+  assert.match(token, /^[a-f0-9]{64}$/);
+  const stored = await database.query<{token_hash: string}>("SELECT token_hash FROM app_password_resets");
+  assert.notEqual(stored.rows[0].token_hash, token);
+  assert.equal(await reset.complete(token, "short"), false);
+  assert.equal(await reset.complete("bad-token", "a-test-password-long-enough"), false);
+  const next = "replacement test-only password";
+  assert.equal(await reset.complete(token, next), true);
+  assert.equal(await reset.complete(token, "another password long enough"), false);
+  assert.equal((await auth.signIn(email, password)).kind, "invalid");
+  assert.equal((await auth.signIn(email, next)).kind, "success");
+  if (original.kind === "success") assert.equal(await auth.getUser(request(original.cookie)), null);
+  // Restore test credentials so later tests stay independent of this password change.
+  await database.query("UPDATE auth_accounts SET password = $1", [await hash(password)]);
+});
+test("reset requests hide unknown accounts, throttle emails and reject expired links", async () => {
+  const { createPasswordReset } = await import("../app/lib/password-reset-core.server");
+  await database.query("DELETE FROM app_login_attempts WHERE key LIKE 'reset:%'");
+  const links: string[] = [];
+  const reset = createPasswordReset(driver, async (_email, link) => { links.push(link); }, "https://preview.example");
+  assert.equal(await reset.request("unknown@example.test"), undefined);
+  assert.equal(links.length, 0);
+  for (let i = 0; i < 5; i++) await reset.request(email);
+  assert.equal(links.length, 3);
+  // Issuing a new link invalidates previous links for the same account.
+  assert.equal(await reset.complete(new URL(links[0]).hash.slice(1), "a-new-test-password"), false);
+  const active = await database.query<{count: number}>("SELECT count(*)::integer AS count FROM app_password_resets WHERE expires_at > now()");
+  assert.equal(active.rows[0].count, 1);
+  await database.query("UPDATE app_password_resets SET expires_at = now() - interval '1 second'");
+  assert.equal(await reset.complete(new URL(links[0]).hash.slice(1), "a-new-test-password"), false);
+});
+test("email failure removes the unusable reset token without leaking details", async () => {
+  const { createPasswordReset } = await import("../app/lib/password-reset-core.server");
+  await database.query("DELETE FROM app_password_resets");
+  await database.query("DELETE FROM app_login_attempts WHERE key LIKE 'reset:%'");
+  const reset = createPasswordReset(driver, async () => { throw new Error("PRIVATE_EMAIL_PROVIDER_DETAILS"); }, "https://preview.example");
+  await assert.rejects(() => reset.request(email), { message: "Reset email delivery unavailable" });
+  const count = await database.query<{count: number}>("SELECT count(*)::integer AS count FROM app_password_resets");
+  assert.equal(count.rows[0].count, 0);
+});
+test("reset routes are disabled outside Vercel Preview", async () => {
+  const { requirePreviewReset } = await import("../app/lib/password-reset.server");
+  const old = process.env.VERCEL_ENV;
+  try {
+    for (const env of ["production", "development", ""]) {
+      process.env.VERCEL_ENV = env;
+      assert.throws(() => requirePreviewReset(), (error: unknown) => error instanceof Response && error.status === 404);
+    }
+    process.env.VERCEL_ENV = "preview";
+    assert.doesNotThrow(requirePreviewReset);
+  } finally { if (old === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = old; }
+});
+
+test("reset actions reject cross-origin POSTs before reading credentials", async () => {
+  const forgot = await import("../app/account/forgot-password");
+  const reset = await import("../app/account/reset-password");
+  const old = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "preview";
+  try {
+    for (const action of [forgot.action, reset.action]) {
+      await assert.rejects(() => action({ request: new Request("https://preview.example/account/reset-password", {
+        method: "POST", headers: {Origin: "https://attacker.example"}, body: new URLSearchParams(),
+      }), params: {}, context: {}, unstable_pattern: "" }), (error: unknown) => error instanceof Response && error.status === 403);
+    }
+  } finally { if (old === undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV = old; }
+});

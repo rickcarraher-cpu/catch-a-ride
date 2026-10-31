@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Form, data, redirect, useActionData, useNavigation } from "react-router";
+import { Form, Link, data, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
 import type { ActionFunctionArgs } from "react-router";
 import { logAuthFailure } from "../../lib/auth-diagnostics.server";
 import { getAuth, logPreviewSchema } from "../../lib/auth.server";
 import { requireSameOrigin } from "../../lib/auth-core.server";
+
+export function loader() { return { previewReset: process.env.VERCEL_ENV === "preview" }; }
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 export async function action({ request }: ActionFunctionArgs) {
@@ -32,6 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function SignInPage() {
+  const { previewReset } = useLoaderData<typeof loader>();
   const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const result = useActionData<typeof action>();
@@ -60,6 +63,7 @@ export default function SignInPage() {
             <button className="secondary" type="button" disabled={busy} onClick={() => setStep("email")}>← Back to Email</button>
           </Form>
         )}
+        {previewReset && <p><Link to="/account/forgot-password">Forgot your test password?</Link></p>}
       </section>
     </main>
   );

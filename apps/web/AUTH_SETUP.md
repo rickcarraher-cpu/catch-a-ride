@@ -78,3 +78,40 @@ Run `bun run test:auth`, `bun run typecheck`, and `bun run build`.
 The authentication tests use an isolated in-memory PostgreSQL engine; they never
 connect to production or read deployment credentials. Live database/TLS connectivity
 and an actual preview account still need the manual checks above.
+
+## Preview-only email password reset (not enabled in Production)
+
+The reset routes are gated to `VERCEL_ENV=preview`. They use `RESEND_KEY`, the
+verified sender `noreply@catcharide.us`, and Vercel's `VERCEL_URL` for the exact
+preview's reset link. No request-supplied host or redirect URL is used. Sending
+emails uses your Resend account and can incur usage. Configure the secret using
+Vercel's protected input; never put its value in chat, Git, or command arguments.
+
+After explicit database-change approval, apply `db/002-password-reset.sql` ONLY to
+the confirmed development database. This creates `app_password_resets` and its
+expiry index; it does not change existing accounts or passwords. The app does not
+run migrations automatically. An approved Preview deployment is also required.
+
+Request a reset through `/account/forgot-password`. The response is deliberately
+the same for unknown accounts, throttling and email errors. Check server logs for
+a generic delivery/configuration failure when no email arrives. A random 256-bit
+reset token expires after 15 minutes, is stored only as a SHA-256 digest, and is
+consumed atomically with the credential update and session revocation. Each account
+has at most one active reset link; requesting another invalidates the prior link. Passwords
+must be 12–1024 characters and are Argon2id-hashed. Requests are throttled to three
+per email and twenty globally per 15 minutes. These counters use the existing
+login-attempts table with a separate `reset:` namespace.
+
+The email link carries its token in the URL fragment (not sent in GET requests or
+Referer headers); the browser removes the fragment after reading it into memory.
+GET never consumes a token, so email scanners cannot reset the password. The token
+and password are submitted only in a same-origin POST body. Do not enable request
+body logging or analytics capture on these pages. Reloading the reset page clears
+the in-memory token; reopen the complete email link instead. If Vercel deployment
+protection requires authentication, sign into Vercel first and reopen the link.
+A successful reset revokes this app's sessions and clears the sign-in throttle;
+it does not change employee/driver portal passwords or legacy platform sessions.
+
+Housekeeping: delete expired rows from `app_password_resets` on your normal
+scheduled database maintenance. Live email delivery and the full browser reset
+flow require verification after the approved migration and Preview deployment.

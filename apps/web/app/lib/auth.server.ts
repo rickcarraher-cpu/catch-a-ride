@@ -47,3 +47,8 @@ export async function logPreviewSchema() {
     });
   } catch (error) { logAuthFailure(error); }
 }
+
+export function getDatabase(): pg.Pool {
+  getAuth();
+  return pool!;
+}
