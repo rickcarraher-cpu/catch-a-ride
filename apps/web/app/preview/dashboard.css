@@ -1,0 +1,11 @@
+@tailwind utilities;
+
+.recovered-layout button:disabled, .recovered-layout a { cursor: not-allowed; }
+.recovery-notice {
+  padding: 18px 24px;
+  background: #fff7d6;
+  color: #402d00;
+  border-bottom: 2px solid #e7be49;
+}
+.recovery-notice p { margin: 6px 0; }
+.recovery-notice a { color: #1d4ed8; text-decoration: underline; }
