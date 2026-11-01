@@ -6,6 +6,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "typecheck": "react-router typegen && tsc --noEmit",
+    "test:staff": "tsx --test test/staff-reads.test.ts",
     "test:auth": "tsx --test test/auth.test.ts test/auth-pool.test.ts test/reset-diagnostics.test.ts",
     "test:wizard": "tsx --test test/wizard-samples.test.ts",
     "test:operations": "tsx --test test/operations-samples.test.ts",

@@ -111,3 +111,19 @@ vehicle. Booking saves reject unknown or mismatched sample driver/vehicle pairs.
 Tests cover both mappings, mismatch rejection and saved vehicle ID. These are not
 28 migrated vehicles or vehicle-management CRUD; real source records remain absent.
 No live database, driver, vehicle, message or payment operation is performed.
+
+## Protected database read milestone
+
+`/preview/database` is Preview-only and requires the existing signed database-backed
+session plus exactly one explicit employee membership. Admin/dispatcher flags allow
+staff access independently of driver is_active. Driver-only, missing or ambiguous
+memberships fail closed; no override cookie or tenant-1 fallback exists.
+
+Appointments are read in bounded pages with explicit fields and tenant-scoped client/
+employee joins. Safe business settings are allowlisted; employee credentials,
+confirmation/reset tokens, integration secrets and sending flags are never returned.
+No data writes or service actions exist. The original dashboard layout remains, but
+its enabled navigation explicitly stays in isolated sample routes. Database records
+appear separately in a disabled original trip table. This is a read-only milestone,
+not a complete operational migration. Successful user login and actual database
+records remain unverified until a test-account holder signs in on this deployment.
