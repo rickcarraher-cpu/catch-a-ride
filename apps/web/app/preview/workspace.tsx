@@ -62,7 +62,7 @@ export default function TestWorkspace() {
             <label>Sample passenger<input name="passenger" value={draft.passenger} maxLength={100} required onChange={e => setDraft({ ...draft, passenger: e.target.value })} /></label>
             <label>Pickup<input name="pickup" value={draft.pickup} maxLength={200} required onChange={e => setDraft({ ...draft, pickup: e.target.value })} /></label>
             <label>Destination<input name="destination" value={draft.dropoff} maxLength={200} required onChange={e => setDraft({ ...draft, dropoff: e.target.value })} /></label>
-            <label>Pickup date and time (local)<input name="when" type="datetime-local" required value={draft.when} onChange={e => setDraft({ ...draft, when: e.target.value })} /></label>
+            <label>Pickup date and time (local, YYYY-MM-DDTHH:mm)<input name="when" type="text" placeholder="2026-11-15T10:30" maxLength={16} required value={draft.when} onChange={e => setDraft({ ...draft, when: e.target.value })} /></label>
             <label>Assign sample driver<select value={draft.driverId} onChange={e => setDraft({ ...draft, driverId: e.target.value })}><option value="">Unassigned</option>{state.drivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
             <label>Status<select value={draft.status} onChange={e => setDraft({ ...draft, status: e.target.value as Trip['status'] })}>{['scheduled', 'completed', 'cancelled'].map(s => <option key={s}>{s}</option>)}</select></label>
           </div><div className="test-actions"><button type="submit">Save test trip</button><button type="button" className="test-secondary" onClick={() => setShowForm(false)}>Discard changes</button></div>
