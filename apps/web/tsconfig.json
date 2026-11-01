@@ -7,6 +7,7 @@
     "test/reset-diagnostics.test.ts",
     "test/recovered-dashboard.test.ts",
     "test/workspace.test.ts",
+    "test/operations-samples.test.ts",
     "test/wizard-samples.test.ts",
     ".react-router/types/**/*"
   ],

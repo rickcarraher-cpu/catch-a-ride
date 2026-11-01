@@ -1,0 +1,4 @@
+.sample-operations { font-family: Arial, sans-serif; }
+.sample-operations button,.sample-operations input,.sample-operations select,.sample-operations textarea { font: inherit; border-style: solid; }
+.sample-operations button { cursor: pointer; }
+.sample-operations a { text-decoration: none; }
