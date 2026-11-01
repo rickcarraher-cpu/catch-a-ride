@@ -36,3 +36,19 @@ test('invalid booking and failed storage do not report a successful booking', as
   await assert.rejects(failing('/api/appointments', post({ client_id: 'sample-client-1', start_time: '2026-11-15T10:30:00-06:00' })), /Storage full/);
   assert.equal(store.getItem(WIZARD_KEY), before);
 });
+
+test('two sample vehicles match categories and assigned drivers without network', async () => {
+  const store = storage(); const api = createSampleFetch(store);
+  const vehicles = await (await api('/api/vehicles')).json();
+  assert.deepEqual(vehicles.map((v: {name:string}) => v.name), ['Sample Sedan', 'Sample SUV']);
+  const categories = await (await api('/api/vehicles/categories')).json();
+  assert.deepEqual(categories.categories, ['Sedan', 'SUV']);
+  for (const [driver, vehicle] of [['sample-driver-1',1],['sample-driver-2',2]] as const) {
+    const assignments = await (await api(`/api/vehicle-assignments?employee_id=${driver}`)).json();
+    assert.equal(assignments.length,1); assert.equal(assignments[0].vehicle_id,vehicle);
+  }
+  const payload = { client_id:'sample-client-1',start_time:'2026-11-15T10:30:00-06:00',employee_id:'sample-driver-2',vehicle_id:1 };
+  assert.equal((await api('/api/appointments',post(payload))).status,400);
+  const saved = await api('/api/appointments',post({...payload,vehicle_id:2}));
+  assert.equal(saved.status,201); assert.equal((await saved.json()).vehicle_id,2);
+});
