@@ -1,0 +1,38 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createSampleFetch, WIZARD_KEY, initialWizardSamples } from '../app/preview/wizard-samples';
+import { STORAGE_KEY, decodeWorkspace } from '../app/preview/workspace-model';
+function storage() { const map = new Map<string, string>(); return { getItem: (key: string) => map.get(key) || null, setItem: (key: string, value: string) => { map.set(key, value); } }; }
+const post = (body: unknown) => ({ method: 'POST', body: JSON.stringify(body) });
+test('original wizard samples never call real fetch, including blocked communications/payments', async () => {
+  const old = globalThis.fetch;
+  globalThis.fetch = () => { throw new Error('Unexpected real request'); };
+  try {
+    const api = createSampleFetch(storage());
+    for (const path of ['/api/settings', '/api/vehicles', '/api/vehicles/categories', '/api/settings/preferred-locations']) assert.equal((await api(path)).status, 200);
+    for (const path of ['/api/appointments/message-only', '/api/payments', '/api/recurring', '/api/appointments/distance', 'https://external.example']) assert.ok((await api(path, post({}))).status >= 400);
+  } finally { globalThis.fetch = old; }
+});
+test('lookup, new sample client and original booking payload persist to browser workspace only', async () => {
+  const store = storage(); const api = createSampleFetch(store);
+  const lookup = await (await api('/api/appointments/lookup', post({ type: 'phone', value: '2025550100' }))).json();
+  assert.equal(lookup.found, true); assert.equal(lookup.client.name, 'Sample Passenger');
+  const client = await (await api('/api/clients', post({ name: 'Practice Rider', phone: '2025550101' }))).json();
+  const result = await api('/api/appointments', post({ client_id: client.id, start_time: '2026-11-15T10:30:00-06:00', pickup_address: 'Sample Hotel', dropoff_address: 'Sample Airport', send_notification: true, payment_method: 'Credit Card', employee_id: 'sample-driver-2' }));
+  assert.equal(result.status, 201);
+  const booking = await result.json(); assert.equal(booking.send_notification, false); assert.equal(booking.payment_url, null);
+  const state = decodeWorkspace(store.getItem(STORAGE_KEY)!);
+  assert.equal(state.trips[1].passenger, 'Practice Rider'); assert.equal(state.trips[1].when, '2026-11-15T10:30'); assert.equal(state.trips[1].driverId, 'sample-driver-2');
+  const clone = await (await api(`/api/appointments/lookup?booking_number=${booking.booking_number}`)).json();
+  assert.equal(clone.id, booking.id);
+  const reopened = createSampleFetch(store); assert.equal((await (await reopened('/api/clients')).json()).length, 2);
+});
+test('invalid booking and failed storage do not report a successful booking', async () => {
+  const store = storage(); const api = createSampleFetch(store);
+  assert.equal((await api('/api/appointments', post({}))).status, 400);
+  assert.equal(store.getItem(STORAGE_KEY), null);
+  const before = JSON.stringify(initialWizardSamples()); store.setItem(WIZARD_KEY, before);
+  const failing = createSampleFetch({ getItem: store.getItem, setItem: (key, value) => { if (key === STORAGE_KEY) throw new Error('Storage full'); store.setItem(key, value); } });
+  await assert.rejects(failing('/api/appointments', post({ client_id: 'sample-client-1', start_time: '2026-11-15T10:30:00-06:00' })), /Storage full/);
+  assert.equal(store.getItem(WIZARD_KEY), before);
+});

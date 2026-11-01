@@ -1,0 +1,13 @@
+.original-booking-preview { font-family: Arial, sans-serif; }
+.original-booking-warning { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff4cc; color: #473600; padding: 8px 16px; font: 13px/1.4 system-ui, sans-serif; box-shadow: 0 1px 4px #0003; }
+.original-booking-warning span { display: block; }
+.original-booking-preview > .fixed { top: 62px; }
+@media (max-width: 600px) { .original-booking-preview > .fixed { top: 82px; } }
+/* Original export expected Tailwind's native-control normalization. Scope it here. */
+:where(.original-booking-preview) button,
+:where(.original-booking-preview) input,
+:where(.original-booking-preview) select,
+:where(.original-booking-preview) textarea { font: inherit; color: inherit; border-style: solid; }
+:where(.original-booking-preview) button { border-width: 0; background-color: transparent; cursor: pointer; }
+:where(.original-booking-preview) a { text-decoration: none; }
+:where(.original-booking-preview) p { margin: 0; }

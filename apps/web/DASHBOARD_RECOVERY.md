@@ -53,3 +53,29 @@ State is per browser AND preview origin; a new deployment address has a separate
 workspace. Clearing browser storage removes samples; there is no cloud sync.
 Existing protected app routes are unchanged. Payment and communication integrations
 remain disconnected. Run `bun run test:workspace` for model/validation checks.
+
+## Original Book A Ride wizard
+
+`/preview/book` uses the October 27 `DispatchBookingWizard` and its original
+BookingWizard components (layout/text/steps preserved, no replacement form).
+Recovered wizard fetch calls are lexically imported from a sample-only adapter;
+global fetch is never overridden, and **no legacy backend route is registered**.
+The adapter never calls the network. Supported settings, vehicles, lookup, client
+and booking operations use explicit example fixtures/browser storage only.
+Unsupported routes return 501, never silently falling through to live services.
+Original notification controls remain visually present for comparison but no
+notifications or charges can run; the persistent sample banner states this.
+Mileage must be entered manually; distance-service calls, recurring trips,
+message-only submissions and weddings integrations remain disconnected.
+
+The original UI source is preserved except for sample-fetch imports, typed wrapper
+props and back/success navigation to sample routes. Global sign-in styles are
+scoped so they do not alter original wizard controls. Example prices/settings and
+fixture content are not live business configuration. A banner and isolated URLs
+are intentional visible differences; no assertion of pixel-perfect/full parity.
+
+Bookings persist their full legacy payload (for clone lookup) separately from the
+practice list projection. Tests cover no-network failures, lookup, client creation,
+booking projection persistence, cloning and rollback on storage errors. Resetting
+samples in the practice workspace clears wizard fixtures as well. Sample details
+only: browser storage is not suitable for private information.
