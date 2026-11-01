@@ -12,6 +12,9 @@ export function getAuth() {
     // Use your provider's pooled connection URL, including its required TLS settings.
     pool = new pg.Pool({ connectionString: DATABASE_URL, max: 3,
       idleTimeoutMillis: 10_000, connectionTimeoutMillis: 5_000, allowExitOnIdle: true });
+    // pg discards failed idle clients. Handle their error event so a dropped
+    // idle connection cannot become an uncaught exception and stop the worker.
+    pool.on("error", logAuthFailure);
     auth = createAuth(pool, AUTH_SECRET, process.env.NODE_ENV === "production");
   }
   return auth;

@@ -40,10 +40,11 @@ Reviewed the October 27 source snapshot (`b4d543b`) in Git history:
 4. Booking creation can create payment links and send confirmations unless flags
    disable them. Tests alone must never depend on callers remembering those flags:
    enforce test-mode integration isolation on the server before restoring APIs.
-5. Active pg Pool initialization has no idle-client error listener; the observed
-   process crash is consistent with an unhandled idle connection error. Add a
-   sanitized listener and focused test, then verify reconnect behavior on Preview.
-   Do not call this a fix for credential mismatch or an unknown database state.
+5. Auth pool initialization now registers a persistent sanitized idle-error
+   listener. A regression test reproduced the prior throw, then confirmed repeated
+   pool errors are handled without opening a database connection or logging
+   exception contents. Actual provider termination/reconnection still needs Preview
+   verification. This does not fix credential mismatch or validate database state.
 
 The old source is not deployed by the sample routes. These findings do not establish
 whether the current live platform has the same issues. Do not probe production or
@@ -85,3 +86,16 @@ chat or publish them in a PR.
 
 This checkpoint performs no migrations, data changes, production settings changes,
 payment calls or email/SMS sends. It is not a claim of overnight/background execution.
+
+## Follow-up: idle database connection errors
+
+An auth-pool regression test failed before the fix and passed after registering
+`pool.on("error", logAuthFailure)`. SQLSTATE 57P01 is classified as
+`database_connection_terminated`; unknown codes remain generic. The installed pg
+pool removes failed idle clients before emitting its pool-level error event; the
+application does not retry writes or alter session authorization.
+
+Configuration metadata shows separate sensitive variable entries for development,
+preview and production, with no provider configuration binding or branch hint.
+Separate entries do not prove separate underlying databases. Provider project/branch
+identity and a test account remain required for real-data reconnection.
