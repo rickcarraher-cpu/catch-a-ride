@@ -31,6 +31,7 @@ export default function RecoveredDashboardPreview() {
     return { ...original, id: trip.id, client_name: trip.passenger,
       display_short_date: trip.when.slice(0, 10), display_time: trip.when.slice(11),
       start_time: `${trip.when}:00`, pickup_address: trip.pickup, dropoff_address: trip.dropoff,
+      employee_id: trip.driverId,
       employee_name: samples?.drivers.find(driver => driver.id === trip.driverId)?.name || 'Unassigned',
       status: trip.status, booking_number: original.booking_number || 'SAMPLE',
       payment_status: 'unpaid', balance_due: 0, total_price: 0,
@@ -52,7 +53,7 @@ export default function RecoveredDashboardPreview() {
       <p>Original trip table, browser sample records only. Displayed balances are placeholders, not verified prices. Editing and other actions are not connected here yet.</p>
       <Link to="/preview/book">Book a Trip</Link>
       {notice && <p role="status">{notice}</p>}
-      <TripsTable trips={trips} isLoading={!samples} error={null} onEdit={disconnected} onDelete={disconnected} onInvoice={disconnected} onPay={disconnected} onSendThankYou={null} currentPage={page} onPageChange={setPage} />
+      <TripsTable sampleMode trips={trips} isLoading={!samples} error={null} onEdit={disconnected} onDelete={disconnected} onInvoice={disconnected} onPay={disconnected} onSendThankYou={null} currentPage={page} onPageChange={setPage} />
     </section>
   </main>;
 }

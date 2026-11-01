@@ -95,6 +95,7 @@ export function TripsTable({
   currentPage = 1,
   pageSize = 50,
   onPageChange,
+  sampleMode = false,
 }) {
   const totalCount = trips?.length || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -650,7 +651,8 @@ export function TripsTable({
                       </button>
                       {trip.booking_number && (
                         <a
-                          href={`/booking/${trip.id}`}
+                          href={sampleMode ? undefined : `/booking/${trip.id}`}
+                          aria-disabled={sampleMode || undefined}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
@@ -682,7 +684,8 @@ export function TripsTable({
                         </button>
                       )}
                       <a
-                        href={`/receipt/${trip.id}`}
+                        href={sampleMode ? undefined : `/receipt/${trip.id}`}
+                        aria-disabled={sampleMode || undefined}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-100 hover:border-gray-300 hover:text-gray-900 transition-colors"
