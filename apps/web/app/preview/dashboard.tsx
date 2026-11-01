@@ -16,6 +16,7 @@ export default function RecoveredDashboardPreview() {
   const { markup } = useLoaderData<typeof loader>();
   const [samples, setSamples] = useState<Workspace | null>(null);
   const [records, setRecords] = useState<Record<string, unknown>[]>([]);
+  const [page, setPage] = useState(1);
   const [notice, setNotice] = useState("");
   useEffect(() => {
     try {
@@ -51,7 +52,7 @@ export default function RecoveredDashboardPreview() {
       <p>Original trip table, browser sample records only. Displayed balances are placeholders, not verified prices. Editing and other actions are not connected here yet.</p>
       <Link to="/preview/book">Book a Trip</Link>
       {notice && <p role="status">{notice}</p>}
-      <TripsTable trips={trips} isLoading={!samples} error={null} onEdit={disconnected} onDelete={disconnected} onInvoice={disconnected} onPay={disconnected} />
+      <TripsTable trips={trips} isLoading={!samples} error={null} onEdit={disconnected} onDelete={disconnected} onInvoice={disconnected} onPay={disconnected} onSendThankYou={null} currentPage={page} onPageChange={setPage} />
     </section>
   </main>;
 }
