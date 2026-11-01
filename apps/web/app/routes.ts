@@ -7,6 +7,7 @@ export default [
   route("account/forgot-password", "account/forgot-password.tsx"),
   route("account/reset-password", "account/reset-password.tsx"),
   route("dashboard", "dashboard/page.tsx"),
+  route("preview/database", "preview/database.tsx"),
   route("preview/dashboard", "preview/dashboard.tsx"),
   route("preview/workspace", "preview/workspace.tsx"),
   route("preview/book", "preview/book.tsx"),

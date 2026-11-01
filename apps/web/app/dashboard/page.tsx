@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { getAuth, authUnavailable } from "../lib/auth.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  if (process.env.VERCEL_ENV === "preview") return redirect("/preview/database", { headers: { "Cache-Control": "no-store" } });
   // Signed-out requests do not require a database connection.
   let user;
   try {
