@@ -1,6 +1,7 @@
 import { STORAGE_KEY, decodeWorkspace, sampleWorkspace, saveTrip } from './workspace-model';
 export const WIZARD_KEY = 'catcharide-original-wizard-samples-v1';
-export const SAMPLE_SETTINGS = { company_name: 'Catch A Ride', business_hours_start: '06:00', business_hours_end: '22:00', manual_mileage: 'yes', rate_per_mile: '3', credit_card_fee_percent: '0' };
+import { SAMPLE_SETTINGS, sampleSettings } from './sample-settings';
+export { SAMPLE_SETTINGS } from './sample-settings';
 export const SAMPLE_SERVICES = [{ id: 1, name: 'Airport Transfer', default_price: 50, duration_minutes: 60, is_addon: false }, { id: 2, name: 'Point to Point', default_price: 50, duration_minutes: 60, is_addon: false }];
 export const SAMPLE_VEHICLES = [{ id: 1, name: 'Sample Sedan', category: 'Sedan', capacity: 4, is_active: true }];
 type SampleClient = { id: string; name: string; email: string; phone: string; street_address: string; city: string; state: string; zip_code: string; notification_preference: string };
@@ -25,7 +26,7 @@ export function createSampleFetch(storage: Pick<Storage, 'getItem' | 'setItem'>)
     const body = typeof init.body === 'string' ? JSON.parse(init.body) : {};
     const state = read();
     const write = () => storage.setItem(WIZARD_KEY, JSON.stringify(state));
-    if (method === 'GET' && path === '/api/settings') return reply(SAMPLE_SETTINGS);
+    if (method === 'GET' && path === '/api/settings') return reply(sampleSettings(storage));
     if (method === 'GET' && path === '/api/vehicles') return reply(SAMPLE_VEHICLES);
     if (method === 'GET' && path === '/api/vehicles/categories') return reply({ categories: ['Sedan', 'SUV', 'Van'] });
     if (method === 'GET' && ['/api/settings/preferred-locations', '/api/vehicle-assignments', '/api/weddings'].includes(path)) return reply([]);

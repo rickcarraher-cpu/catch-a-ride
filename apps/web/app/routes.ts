@@ -10,4 +10,6 @@ export default [
   route("preview/dashboard", "preview/dashboard.tsx"),
   route("preview/workspace", "preview/workspace.tsx"),
   route("preview/book", "preview/book.tsx"),
+  route("preview/settings", "preview/operations.tsx", { id: "sample-settings" }),
+  route("preview/assignments", "preview/operations.tsx", { id: "sample-assignments" }),
 ] satisfies RouteConfig;

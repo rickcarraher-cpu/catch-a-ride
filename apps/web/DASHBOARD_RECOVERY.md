@@ -79,3 +79,25 @@ practice list projection. Tests cover no-network failures, lookup, client creati
 booking projection persistence, cloning and rollback on storage errors. Resetting
 samples in the practice workspace clears wizard fixtures as well. Sample details
 only: browser storage is not suitable for private information.
+
+## Original desktop assignments and settings — isolated samples
+
+`/preview/assignments` restores the original Schedule Timeline with sample drivers
+and booked-date trips projected from browser storage. Supported PATCH assignments,
+unassignment and rescheduling save locally; notifications remain blocked regardless
+of UI send options. Synthetic numeric driver IDs map to workspace driver IDs without
+changing existing stored data. Chicago time conversion is explicit.
+
+`/preview/settings` restores the original Settings 2 tabs/components. Only explicit
+ordinary-setting keys (business name/contact/hours, sample rates, feature toggles,
+booking message, passenger defaults) can save to a separate browser key. Credential,
+auth-bypass, payment-service, cleanup, upload and unknown routes fail closed; no
+real credentials should be entered. Sample settings feed the original booking wizard.
+These are not imported live settings and are not database-backed. Both routes are
+Preview-only; protected app routes remain unchanged. Dashboard navigation maps to
+these isolated routes. Original components are retained with only sample fetch
+imports, removed value-debug logs and isolated back navigation.
+
+Desktop verification only by user request. Full drag/drop, conflict management,
+notifications, blocked times and all settings panels are not established as working
+until explicitly verified; adapter tests are not proof of full interaction parity.

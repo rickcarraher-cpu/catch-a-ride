@@ -6,6 +6,8 @@ import OriginalDashboard from "../../src/app/dashboard/page";
 // This module and the recovered component never enter the browser bundle.
 export function sampleDashboardLink(href: string): string | null {
   if (href === "/trips?new=true&dispatch=true" || href === "/trips?new=true") return "/preview/book";
+  if (href === "/settings-2") return "/preview/settings";
+  if (href === "/schedule-timeline" || href === "/schedule-builder") return "/preview/assignments";
   if (href === "/trips") return "#sample-trips";
   return null;
 }

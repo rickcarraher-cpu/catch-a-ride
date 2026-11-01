@@ -11,7 +11,7 @@ test("recovered layout renders without connecting any service and has no active 
       assert.ok(html.includes(text), `Missing original dashboard label: ${text}`);
     }
     assert.doesNotMatch(html, /<script\b|<iframe\b|<form\b/i);
-    for (const link of html.matchAll(/href="([^"]*)"/g)) assert.ok(["/preview/book", "#sample-trips"].includes(link[1]));
+    for (const link of html.matchAll(/href="([^"]*)"/g)) assert.ok(["/preview/book", "#sample-trips", "/preview/settings", "/preview/assignments"].includes(link[1]));
     for (const button of html.matchAll(/<button\b[^>]*>/g)) assert.match(button[0], /\bdisabled=/);
     for (const input of html.matchAll(/<input\b[^>]*>/g)) assert.match(input[0], /\bdisabled=/);
     assert.doesNotMatch(html, /Signing in|Signed in as/);
