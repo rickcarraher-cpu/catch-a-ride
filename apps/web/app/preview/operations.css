@@ -1,4 +1,6 @@
 .sample-operations { font-family: Arial, sans-serif; }
-.sample-operations button,.sample-operations input,.sample-operations select,.sample-operations textarea { font: inherit; border-style: solid; }
-.sample-operations button { cursor: pointer; }
-.sample-operations a { text-decoration: none; }
+:where(.sample-operations *) { border-width: 0; border-style: solid; }
+:where(.sample-operations button,.sample-operations input,.sample-operations select,.sample-operations textarea) { font: inherit; color: inherit; margin: 0; padding: 0; }
+:where(.sample-operations button) { background-color: transparent; cursor: pointer; }
+:where(.sample-operations p,.sample-operations h1,.sample-operations h2,.sample-operations h3) { margin: 0; }
+:where(.sample-operations a) { text-decoration: none; }
