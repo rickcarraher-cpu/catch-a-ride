@@ -18,11 +18,11 @@ test('lookup, new sample client and original booking payload persist to browser 
   const lookup = await (await api('/api/appointments/lookup', post({ type: 'phone', value: '2025550100' }))).json();
   assert.equal(lookup.found, true); assert.equal(lookup.client.name, 'Sample Passenger');
   const client = await (await api('/api/clients', post({ name: 'Practice Rider', phone: '2025550101' }))).json();
-  const result = await api('/api/appointments', post({ client_id: client.id, start_time: '2026-11-15T10:30:00-06:00', pickup_address: 'Sample Hotel', dropoff_address: 'Sample Airport', send_notification: true, payment_method: 'Credit Card' }));
+  const result = await api('/api/appointments', post({ client_id: client.id, start_time: '2026-11-15T10:30:00-06:00', pickup_address: 'Sample Hotel', dropoff_address: 'Sample Airport', send_notification: true, payment_method: 'Credit Card', employee_id: 'sample-driver-2' }));
   assert.equal(result.status, 201);
   const booking = await result.json(); assert.equal(booking.send_notification, false); assert.equal(booking.payment_url, null);
   const state = decodeWorkspace(store.getItem(STORAGE_KEY)!);
-  assert.equal(state.trips[1].passenger, 'Practice Rider'); assert.equal(state.trips[1].when, '2026-11-15T10:30');
+  assert.equal(state.trips[1].passenger, 'Practice Rider'); assert.equal(state.trips[1].when, '2026-11-15T10:30'); assert.equal(state.trips[1].driverId, 'sample-driver-2');
   const clone = await (await api(`/api/appointments/lookup?booking_number=${booking.booking_number}`)).json();
   assert.equal(clone.id, booking.id);
   const reopened = createSampleFetch(store); assert.equal((await (await reopened('/api/clients')).json()).length, 2);
