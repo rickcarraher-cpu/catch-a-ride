@@ -5,6 +5,7 @@ import { requireDashboardPreview } from '../lib/recovered-dashboard.server';
 import { STORAGE_KEY, sampleWorkspace, decodeWorkspace, saveTrip, addDriver, removeDriver, emptyTrip } from './workspace-model';
 import type { Workspace, Trip } from './workspace-model';
 import './workspace.css';
+import { WIZARD_KEY } from './wizard-samples';
 
 export function loader() { requireDashboardPreview(); return null; }
 export function headers() { return { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' }; }
@@ -56,7 +57,7 @@ export default function TestWorkspace() {
       {message && <p role="status" className="test-success">{message}</p>}{error && <p role="alert" className="test-error">{error}</p>}
       {!ready ? <p>Loading browser test workspace…</p> : <>
       <section className="test-stats" aria-label="Sample trip counts"><p><strong>{state.trips.filter(t => t.status === 'scheduled').length}</strong> Scheduled</p><p><strong>{state.drivers.length}</strong> Sample drivers</p><p><strong>{state.trips.filter(t => t.status === 'completed').length}</strong> Completed</p></section>
-      {tab === 'trips' ? <section aria-labelledby="trip-title"><div className="test-section-title"><h2 id="trip-title">Test bookings</h2><button onClick={() => { setDraft(emptyTrip); setEditId(null); setShowForm(true); setError(''); }}>Book a test trip</button></div>
+      {tab === 'trips' ? <section aria-labelledby="trip-title"><div className="test-section-title"><h2 id="trip-title">Test bookings</h2><Link to="/preview/book">Book a test trip — original wizard</Link></div>
         {showForm && <form onSubmit={submitTrip} className="test-panel"><h3>{editId ? 'Edit test trip' : 'New test trip'}</h3>
           <div className="test-fields">
             <label>Sample passenger<input name="passenger" value={draft.passenger} maxLength={100} required onChange={e => setDraft({ ...draft, passenger: e.target.value })} /></label>
@@ -77,7 +78,7 @@ export default function TestWorkspace() {
         {state.drivers.map(d => <article className="test-panel" key={d.id}><h3>{d.name}</h3><p>{state.trips.filter(t => t.driverId === d.id && t.status === 'scheduled').length} scheduled test trips</p><button className="test-danger" aria-label={`Remove ${d.name}`} onClick={() => { try { persist(removeDriver(state, d.id), 'Sample driver removed.'); } catch (e) { setError((e as Error).message); } }}>Remove sample driver</button></article>)}
       </section>}
       <section className="test-panel"><h2>Disconnected services</h2><p>Payments, invoicing, email and SMS are not connected. No charges or notifications can be sent from this workspace.</p></section>
-      <footer>{!resetting ? <button className="test-secondary" onClick={() => setResetting(true)}>Reset sample data</button> : <div><p>Replace all trips and drivers in this browser workspace with the original samples?</p><div className="test-actions"><button className="test-danger" onClick={() => { if (persist(sampleWorkspace(), 'Sample data reset.')) { setResetting(false); setShowForm(false); setSearch(''); setFilter('all'); } }}>Confirm reset</button><button className="test-secondary" onClick={() => setResetting(false)}>Keep my test data</button></div></div>}</footer>
+      <footer>{!resetting ? <button className="test-secondary" onClick={() => setResetting(true)}>Reset sample data</button> : <div><p>Replace all trips and drivers in this browser workspace with the original samples?</p><div className="test-actions"><button className="test-danger" onClick={() => { if (persist(sampleWorkspace(), 'Sample data reset.')) { localStorage.removeItem(WIZARD_KEY); setResetting(false); setShowForm(false); setSearch(''); setFilter('all'); } }}>Confirm reset</button><button className="test-secondary" onClick={() => setResetting(false)}>Keep my test data</button></div></div>}</footer>
       </>}
     </div>
   </main>;

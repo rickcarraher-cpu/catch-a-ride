@@ -5,6 +5,7 @@
     "test/auth.test.ts",
     "test/recovered-dashboard.test.ts",
     "test/workspace.test.ts",
+    "test/wizard-samples.test.ts",
     ".react-router/types/**/*"
   ],
   "compilerOptions": {

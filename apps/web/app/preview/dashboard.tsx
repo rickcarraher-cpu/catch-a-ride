@@ -14,6 +14,7 @@ export default function RecoveredDashboardPreview() {
       <strong>Recovered dashboard · View only</strong>
       <p>Original October 27 layout. No customer data is loaded. Buttons and links are disabled.
         Booking, drivers, payments and email are not connected or verified.</p>
+      <p><Link to="/preview/book">Book a Trip — original wizard (sample mode)</Link></p>
       <p><Link to="/preview/workspace">Open interactive sample workspace</Link></p>
       <Link to="/account/signin">Return to protected sign-in</Link>
     </aside>

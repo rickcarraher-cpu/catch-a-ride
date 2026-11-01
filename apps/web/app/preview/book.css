@@ -1,0 +1,5 @@
+.original-booking-preview { font-family: Arial, sans-serif; }
+.original-booking-warning { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff4cc; color: #473600; padding: 8px 16px; font: 13px/1.4 system-ui, sans-serif; box-shadow: 0 1px 4px #0003; }
+.original-booking-warning span { display: block; }
+.original-booking-preview > .fixed { top: 62px; }
+@media (max-width: 600px) { .original-booking-preview > .fixed { top: 82px; } }

@@ -9,4 +9,5 @@ export default [
   route("dashboard", "dashboard/page.tsx"),
   route("preview/dashboard", "preview/dashboard.tsx"),
   route("preview/workspace", "preview/workspace.tsx"),
+  route("preview/book", "preview/book.tsx"),
 ] satisfies RouteConfig;
