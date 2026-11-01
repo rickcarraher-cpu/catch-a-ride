@@ -7,6 +7,7 @@ const reasons: Record<string, string> = {
   "28000": "database_authorization_failed",
   "3D000": "database_not_found",
   "53300": "database_connection_limit",
+  "57P01": "database_connection_terminated",
   ECONNREFUSED: "database_connection_refused",
   ENOTFOUND: "database_hostname_not_found",
   EAI_AGAIN: "database_dns_temporarily_unavailable",
