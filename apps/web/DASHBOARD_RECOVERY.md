@@ -39,3 +39,17 @@ This is not a functioning migration. Booking, drivers, payments, emails, private
 records, tenant isolation in legacy services and successful live sign-in remain
 unverified/unconnected. Production data migration and domain cutover are separate
 explicitly approved work. Do not merge this as a claim of production readiness.
+
+## Interactive isolated test workspace
+
+`/preview/workspace` is a separate sample-data application gated by the same
+Preview-only loader. It is not connected to the original legacy APIs or database,
+and is not a finished migration. It supports trip create/edit, status changes,
+driver creation/removal/assignment, search/filter, and confirmed reset to samples.
+State is validated on load and saved to versioned localStorage only on explicit
+user actions. Storage failures are reported without claiming a save. No service
+requests or server actions are implemented. Never enter real customer information.
+State is per browser AND preview origin; a new deployment address has a separate
+workspace. Clearing browser storage removes samples; there is no cloud sync.
+Existing protected app routes are unchanged. Payment and communication integrations
+remain disconnected. Run `bun run test:workspace` for model/validation checks.

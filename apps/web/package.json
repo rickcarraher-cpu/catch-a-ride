@@ -7,6 +7,7 @@
     "build": "react-router build",
     "typecheck": "react-router typegen && tsc --noEmit",
     "test:auth": "tsx --test test/auth.test.ts",
+    "test:workspace": "tsx --test test/workspace.test.ts",
     "test:recovery": "tsx --test test/recovered-dashboard.test.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:create-user": "tsx scripts/create-user.ts"
