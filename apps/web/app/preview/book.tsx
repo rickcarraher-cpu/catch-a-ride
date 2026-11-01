@@ -20,7 +20,7 @@ export default function OriginalBookingPreview() {
   return <main className="original-booking-preview">
     <aside className="original-booking-warning"><strong>SAMPLE MODE — Original Book A Ride screens</strong><span>Sample details only. Prices/settings are examples, not live rates. Saves stay in this browser. Payments, emails and texts are disconnected.</span></aside>
     {error ? <p role="alert">{error}</p> : !workspace ? <p>Loading original booking wizard…</p> : <QueryClientProvider client={client}>
-      <DispatchBookingWizard clients={[]} drivers={workspace.drivers.map(driver => ({ ...driver, is_active: true }))} services={SAMPLE_SERVICES} onClose={() => { window.location.href = '/preview/dashboard'; }} onSuccess={() => { window.location.href = '/preview/workspace'; }} />
+      <DispatchBookingWizard clients={[]} drivers={workspace.drivers.map(driver => ({ ...driver, is_active: true }))} services={SAMPLE_SERVICES} onClose={() => { window.location.href = '/preview/dashboard'; }} onSuccess={() => { window.location.href = '/preview/dashboard#sample-trips'; }} />
     </QueryClientProvider>}
   </main>;
 }
