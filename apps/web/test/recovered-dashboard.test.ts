@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderRecoveredDashboard, requireDashboardPreview } from "../app/lib/recovered-dashboard.server";
+import { renderRecoveredDashboard, requireDashboardPreview, sampleDashboardLink } from "../app/lib/recovered-dashboard.server";
 
 test("recovered layout renders without connecting any service and has no active controls", () => {
   const originalFetch = globalThis.fetch;
@@ -10,7 +10,8 @@ test("recovered layout renders without connecting any service and has no active 
     for (const text of ["Catch A Ride", "Process Payments", "Assign Drivers", "All Trips", "Manage Drivers"]) {
       assert.ok(html.includes(text), `Missing original dashboard label: ${text}`);
     }
-    assert.doesNotMatch(html, /<script\b|\bhref=|<iframe\b|<form\b/i);
+    assert.doesNotMatch(html, /<script\b|<iframe\b|<form\b/i);
+    for (const link of html.matchAll(/href="([^"]*)"/g)) assert.ok(["/preview/book", "#sample-trips"].includes(link[1]));
     for (const button of html.matchAll(/<button\b[^>]*>/g)) assert.match(button[0], /\bdisabled=/);
     for (const input of html.matchAll(/<input\b[^>]*>/g)) assert.match(input[0], /\bdisabled=/);
     assert.doesNotMatch(html, /Signing in|Signed in as/);
@@ -31,4 +32,10 @@ test("dashboard viewing route fails closed outside Preview", () => {
     if (old === undefined) delete process.env.VERCEL_ENV;
     else process.env.VERCEL_ENV = old;
   }
+});
+
+test("only explicitly supported booking links are enabled", () => {
+  assert.equal(sampleDashboardLink('/trips?new=true&dispatch=true'), '/preview/book');
+  assert.equal(sampleDashboardLink('/trips'), '#sample-trips');
+  for (const href of ['/payments', '/drivers', '/trips?new=true&tour=true', 'https://external.example', 'javascript:alert(1)']) assert.equal(sampleDashboardLink(href), null);
 });

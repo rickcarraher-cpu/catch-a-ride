@@ -13,3 +13,9 @@
 }
 .recovery-notice p { margin: 6px 0; }
 .recovery-notice a { color: #1d4ed8; text-decoration: underline; }
+
+.recovered-layout a[href] { cursor: pointer; }
+.dashboard-sample-trips { max-width: 1280px; margin: 0 auto; padding: 24px; scroll-margin-top: 20px; }
+.dashboard-sample-trips h2 { font-size: 24px; font-weight: 700; }
+.dashboard-sample-trips > a { color: #1d4ed8; text-decoration: underline; display: inline-block; margin: 12px 0; }
+.dashboard-sample-trips button { font: inherit; cursor: pointer; border: 0; }
