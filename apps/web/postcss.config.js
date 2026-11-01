@@ -1,2 +1,7 @@
-// The active React Router app uses plain CSS, not the unused export scaffold plugins.
-export default { plugins: {} };
+import tailwindcss from 'tailwindcss';
+import { fileURLToPath } from 'node:url';
+export default { plugins: [tailwindcss({
+  content: [fileURLToPath(new URL('./src/**/*.{js,ts,jsx,tsx}', import.meta.url))],
+  corePlugins: { preflight: false },
+  theme: { extend: { fontFamily: { inter: ['Inter', 'system-ui', 'sans-serif'] } } },
+})] };

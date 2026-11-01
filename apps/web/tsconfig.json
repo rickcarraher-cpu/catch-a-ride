@@ -3,6 +3,7 @@
     "app/**/*",
     "scripts/**/*.ts",
     "test/auth.test.ts",
+    "test/recovered-dashboard.test.ts",
     ".react-router/types/**/*"
   ],
   "compilerOptions": {
@@ -20,6 +21,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
+    "allowJs": true,
     "paths": {
       "@/*": ["./src/*"]
     }
