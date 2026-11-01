@@ -101,3 +101,13 @@ imports, removed value-debug logs and isolated back navigation.
 Desktop verification only by user request. Full drag/drop, conflict management,
 notifications, blocked times and all settings panels are not established as working
 until explicitly verified; adapter tests are not proof of full interaction parity.
+
+## Two-vehicle booking fixture
+
+The original booking wizard has Sample Sedan (4 passengers) assigned to the first
+sample driver and Sample SUV (6 passengers) assigned to the second sample driver.
+Vehicle/category reads use the same fixtures; driver filtering excludes the other
+vehicle. Booking saves reject unknown or mismatched sample driver/vehicle pairs.
+Tests cover both mappings, mismatch rejection and saved vehicle ID. These are not
+28 migrated vehicles or vehicle-management CRUD; real source records remain absent.
+No live database, driver, vehicle, message or payment operation is performed.

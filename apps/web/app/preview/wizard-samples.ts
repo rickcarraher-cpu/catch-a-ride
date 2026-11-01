@@ -3,7 +3,8 @@ export const WIZARD_KEY = 'catcharide-original-wizard-samples-v1';
 import { SAMPLE_SETTINGS, sampleSettings } from './sample-settings';
 export { SAMPLE_SETTINGS } from './sample-settings';
 export const SAMPLE_SERVICES = [{ id: 1, name: 'Airport Transfer', default_price: 50, duration_minutes: 60, is_addon: false }, { id: 2, name: 'Point to Point', default_price: 50, duration_minutes: 60, is_addon: false }];
-export const SAMPLE_VEHICLES = [{ id: 1, name: 'Sample Sedan', category: 'Sedan', capacity: 4, is_active: true }];
+import { SAMPLE_VEHICLES, SAMPLE_CATEGORIES, sampleVehicleAssignments } from './sample-vehicles';
+export { SAMPLE_VEHICLES } from './sample-vehicles';
 type SampleClient = { id: string; name: string; email: string; phone: string; street_address: string; city: string; state: string; zip_code: string; notification_preference: string };
 type SampleState = { clients: SampleClient[]; appointments: Record<string, unknown>[] };
 export function initialWizardSamples(): SampleState {
@@ -28,8 +29,13 @@ export function createSampleFetch(storage: Pick<Storage, 'getItem' | 'setItem'>)
     const write = () => storage.setItem(WIZARD_KEY, JSON.stringify(state));
     if (method === 'GET' && path === '/api/settings') return reply(sampleSettings(storage));
     if (method === 'GET' && path === '/api/vehicles') return reply(SAMPLE_VEHICLES);
-    if (method === 'GET' && path === '/api/vehicles/categories') return reply({ categories: ['Sedan', 'SUV', 'Van'] });
-    if (method === 'GET' && ['/api/settings/preferred-locations', '/api/vehicle-assignments', '/api/weddings'].includes(path)) return reply([]);
+    if (method === 'GET' && path === '/api/vehicles/categories') return reply({ categories: SAMPLE_CATEGORIES });
+    if (method === 'GET' && path === '/api/vehicle-assignments') {
+      const raw = storage.getItem(STORAGE_KEY);
+      const workspace = raw ? decodeWorkspace(raw) : sampleWorkspace();
+      return reply(sampleVehicleAssignments(workspace.drivers, url.searchParams.get('employee_id')));
+    }
+    if (method === 'GET' && ['/api/settings/preferred-locations', '/api/weddings'].includes(path)) return reply([]);
     if (path === '/api/clients' && method === 'GET') return reply(state.clients);
     if (path === '/api/clients' && method === 'POST') {
       if (state.clients.length >= 200 || typeof body.name !== 'string' || !body.name.trim() || body.name.length > 100) return reply({ error: 'Use a sample passenger name within the field limits.' }, 400);
@@ -63,6 +69,10 @@ export function createSampleFetch(storage: Pick<Storage, 'getItem' | 'setItem'>)
       const pickup = String(body.pickup_address || [body.pickup_street, body.pickup_city, body.pickup_state, body.pickup_zip].filter(Boolean).join(', ') || 'Not specified');
       const dropoff = String(body.dropoff_address || [body.dropoff_street, body.dropoff_city, body.dropoff_state, body.dropoff_zip].filter(Boolean).join(', ') || body.destination || 'Not specified');
       const driverId = body.employee_id ? String(body.employee_id) : '';
+      if (body.vehicle_id) {
+        const vehicle = SAMPLE_VEHICLES.find(v => String(v.id) === String(body.vehicle_id));
+        if (!vehicle || (driverId && !sampleVehicleAssignments(workspace.drivers, driverId).some(a => a.vehicle_id === vehicle.id))) return reply({ error: 'Choose a vehicle assigned to the selected sample driver.' }, 400);
+      }
       const next = saveTrip(workspace, id, { passenger: client.name, pickup, dropoff, when: body.start_time.slice(0, 16), driverId, status: 'scheduled' });
       // One authoritative record: save full payload and workspace projection together.
       // Refuse a save on storage failure; no service messages or payments are performed.
