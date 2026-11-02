@@ -127,3 +127,21 @@ its enabled navigation explicitly stays in isolated sample routes. Database reco
 appear separately in a disabled original trip table. This is a read-only milestone,
 not a complete operational migration. Successful user login and actual database
 records remain unverified until a test-account holder signs in on this deployment.
+
+## Temporary owner-approved read review
+
+Dedicated branch `preview/temporary-read-review` skips only the app-password gate
+on `/preview/database` until 2026-11-02 19:28 UTC. It requires Preview environment
+and exact branch metadata, and defaults closed at expiry/elsewhere. It returns only
+tenant 1 bounded read-only records using the existing field/settings allowlists.
+It creates no app cookie, grants no staff/write role, and does not change sign-in,
+production, database values or other protected routes. Existing form sign-in remains.
+
+Security boundary: Vercel Authentication MUST remain enabled on this deployment.
+This allows Vercel-authorized viewers, not a verified app identity. Do not create a
+share/bypass link or open this deployment using a browser tool that creates one.
+Inspect deployment-specific SSO protection before handing the URL to the owner.
+This is time-limited review, NOT public email-only authentication or a permanent
+production access design. After expiry the normal app sign-in is required again.
+A follow-up may remove this branch's temporary code entirely; no automatic commit
+is scheduled. Already displayed/downloaded records cannot be recalled at expiry.
