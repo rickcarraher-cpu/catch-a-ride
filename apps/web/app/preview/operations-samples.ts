@@ -50,7 +50,11 @@ export function createOperationsFetch(storage: Pick<Storage, 'getItem' | 'setIte
 }
 export async function operationsFetch(input: string, init?: RequestInit) {
   if(typeof window!=='undefined' && ['/preview/database-settings','/preview/database-assignments'].includes(window.location.pathname)){
-    if((init?.method||'GET').toUpperCase()!=='GET')return Response.json({error:'Database writes disabled in read-only review'},{status:405});
+    if((init?.method||'GET').toUpperCase()!=='GET'){
+      const match=input.match(/^\/api\/appointments\/([1-9]\d*)$/);
+      if(match && init?.method==='PATCH' && window.location.pathname==='/preview/database-assignments')return fetch(`/preview/database-api?resource=assignment&id=${match[1]}`,{...init,credentials:'same-origin'});
+      return Response.json({error:'This database write is not enabled'},{status:405});
+    }
     const url=new URL(input,window.location.origin);
     if(!input.startsWith('/api/'))return Response.json({error:'Unavailable in read-only review'},{status:403});
     if(url.pathname==='/api/schedule-timeline')return fetch(`/preview/database-api?resource=timeline&date=${encodeURIComponent(url.searchParams.get('date')||'')}`,{credentials:'same-origin'});

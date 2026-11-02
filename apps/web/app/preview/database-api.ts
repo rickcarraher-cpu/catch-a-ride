@@ -1,4 +1,9 @@
 import type {LoaderFunctionArgs,ActionFunctionArgs} from 'react-router';
+import {assignDatabaseTrip} from '../lib/assignment-write.server';
+import {getAuth} from '../lib/auth.server';
+import {resolveStaff} from '../lib/staff-reads.server';
+import {requireSameOrigin} from '../lib/auth-core.server';
+import {requireDashboardPreview} from '../lib/recovered-dashboard.server';
 import {readReviewStaff} from '../lib/review-context.server';
 import {getDatabase,authUnavailable} from '../lib/auth.server';
 import {readStaffTimeline,readStaffDashboard} from '../lib/staff-reads.server';
@@ -12,4 +17,19 @@ export async function loader({request}:LoaderFunctionArgs){
  return Response.json(result,{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
 }
-export function action(_args:ActionFunctionArgs){throw new Response('Database writes disabled on this read-only review',{status:405,headers:{'Cache-Control':'no-store'}});}
+export async function action({request}:ActionFunctionArgs){
+ requireDashboardPreview(); requireSameOrigin(request);
+ if(request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
+ if(Number(request.headers.get('Content-Length')||0)>4096)throw new Response('Request too large',{status:413});
+ try{
+ const user=await getAuth().getUser(request);
+ const staff=await resolveStaff(getDatabase(),user);
+ const url=new URL(request.url);
+ if(url.searchParams.get('resource')!=='assignment')throw new Response('Write unavailable',{status:405});
+ const raw=url.searchParams.get('id')||'';
+ if(!/^[1-9]\d{0,9}$/.test(raw))throw new Response('Invalid trip',{status:400});
+ const text=await request.text();if(text.length>4096)throw new Response('Request too large',{status:413});
+ let body;try{body=JSON.parse(text);}catch{throw new Response('Invalid JSON',{status:400});}
+ return Response.json(await assignDatabaseTrip(getDatabase(),staff,Number(raw),body),{headers:{'Cache-Control':'no-store'}});
+ }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
+}
