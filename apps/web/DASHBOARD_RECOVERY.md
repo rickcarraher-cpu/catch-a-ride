@@ -145,3 +145,16 @@ This is time-limited review, NOT public email-only authentication or a permanent
 production access design. After expiry the normal app sign-in is required again.
 A follow-up may remove this branch's temporary code entirely; no automatic commit
 is scheduled. Already displayed/downloaded records cannot be recalled at expiry.
+
+## Imported database assignment/settings read review
+
+Original screens at `/preview/database-assignments` and `/preview/database-settings`
+use tenant-scoped server reads instead of browser fixtures. API GET routes authenticate
+via existing staff session or the existing exact-branch expiring Vercel-protected
+read gate. No expiry extension. Every API action returns 405. Unknown reads return
+404/501 rather than fall through to legacy services. Settings controls disabled;
+timeline dragging suppressed while date selection remains usable. Sensitive driver
+and booking tokens/passwords are not selected. Timeline durations are explicitly
+illustrative 60 minutes, not verified actual service durations. More than 500 trips
+on a date fails visibly rather than silently truncating. Does not implement booking,
+assignment or settings writes. Those remain blocked without verified app staff sign-in.

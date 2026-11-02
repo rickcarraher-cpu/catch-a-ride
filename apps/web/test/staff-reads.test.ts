@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Pool } from 'pg';
-import {resolveStaff,readStaffDashboard,BUSINESS_SETTINGS} from '../app/lib/staff-reads.server';
+import {resolveStaff,readStaffDashboard,BUSINESS_SETTINGS,readStaffTimeline} from '../app/lib/staff-reads.server';
 const user={id:'1',email:'staff@example.test',name:'Staff'};
 const dbFor=(rows:unknown[])=>({query:async()=>({rows})}) as unknown as Pick<Pool,'query'>;
 test('explicit admin/dispatcher membership does not require active driver flag',async()=>{
@@ -21,4 +21,14 @@ test('all reads scope tenant and paginate; safe setting allowlist excludes crede
  for(const call of calls){assert.equal(call.args[0],2);assert.match(call.sql,/tenant_id = \$1/);assert.doesNotMatch(call.sql,/SELECT \*|UPDATE|INSERT|DELETE/);}
  assert.equal(calls[0].args[1],50);assert.match(calls[0].sql,/c.tenant_id = a.tenant_id/);assert.match(calls[0].sql,/e.tenant_id = a.tenant_id/);
  assert.ok(!BUSINESS_SETTINGS.includes('bypass_dashboard_login'));await assert.rejects(readStaffDashboard(db,staff,0));
+});
+
+test('database timeline scopes tenant and Chicago date, rejects bad dates and excessive results',async()=>{
+ const calls:{sql:string,args:unknown[]}[]=[];
+ const db={query:async(sql:string,args:unknown[])=>{calls.push({sql,args});return {rows:[]};}} as unknown as Pick<Pool,'query'>;
+ const staff={employeeId:51,tenantId:1,isAdmin:true,isDispatcher:true};
+ await readStaffTimeline(db,staff,'2026-11-02');
+ assert.equal(calls.length,2);for(const c of calls){assert.equal(c.args[0],1);assert.doesNotMatch(c.sql,/SELECT \*|UPDATE|DELETE|INSERT/);}
+ assert.match(calls[1].sql,/America\/Chicago/);assert.equal(calls[1].args[1],'2026-11-02');
+ await assert.rejects(readStaffTimeline(db,staff,'2026-02-31'));
 });
