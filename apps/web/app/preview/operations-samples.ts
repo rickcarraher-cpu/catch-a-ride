@@ -49,6 +49,14 @@ export function createOperationsFetch(storage: Pick<Storage, 'getItem' | 'setIte
   };
 }
 export async function operationsFetch(input: string, init?: RequestInit) {
+  if(typeof window!=='undefined' && ['/preview/database-settings','/preview/database-assignments'].includes(window.location.pathname)){
+    if((init?.method||'GET').toUpperCase()!=='GET')return Response.json({error:'Database writes disabled in read-only review'},{status:405});
+    const url=new URL(input,window.location.origin);
+    if(!input.startsWith('/api/'))return Response.json({error:'Unavailable in read-only review'},{status:403});
+    if(url.pathname==='/api/schedule-timeline')return fetch(`/preview/database-api?resource=timeline&date=${encodeURIComponent(url.searchParams.get('date')||'')}`,{credentials:'same-origin'});
+    if(url.pathname==='/api/settings')return fetch('/preview/database-api?resource=settings',{credentials:'same-origin'});
+    return Response.json({error:'Not connected in database read-only review'},{status:501});
+  }
   if (typeof window === 'undefined' || !['/preview/settings','/preview/assignments'].includes(window.location.pathname)) throw new Error('Sample operations unavailable outside isolated preview.');
   return createOperationsFetch(window.localStorage)(input, init);
 }
