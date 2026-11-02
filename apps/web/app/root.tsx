@@ -1,3 +1,4 @@
+import "./styles.css";
 import {
   Links,
   Meta,
@@ -23,3 +24,5 @@ export default function App() {
     </html>
   );
 }
+
+export function headers() { return { "Cache-Control": "no-store" }; }
