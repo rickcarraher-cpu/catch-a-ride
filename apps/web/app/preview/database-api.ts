@@ -1,4 +1,5 @@
 import type {LoaderFunctionArgs,ActionFunctionArgs} from 'react-router';
+import {saveBusinessSetting,createDatabaseBooking,inBusinessTransaction} from '../lib/business-write.server';
 import {assignDatabaseTrip} from '../lib/assignment-write.server';
 import {getAuth} from '../lib/auth.server';
 import {resolveStaff} from '../lib/staff-reads.server';
@@ -19,17 +20,21 @@ export async function loader({request}:LoaderFunctionArgs){
 }
 export async function action({request}:ActionFunctionArgs){
  requireDashboardPreview(); requireSameOrigin(request);
- if(request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
+ if(!['PATCH','POST'].includes(request.method))throw new Response('Method not allowed',{status:405});
  if(Number(request.headers.get('Content-Length')||0)>4096)throw new Response('Request too large',{status:413});
  try{
  const user=await getAuth().getUser(request);
  const staff=await resolveStaff(getDatabase(),user);
  const url=new URL(request.url);
- if(url.searchParams.get('resource')!=='assignment')throw new Response('Write unavailable',{status:405});
+ const resource=url.searchParams.get('resource');
+ if(!['assignment','settings','booking'].includes(resource||''))throw new Response('Write unavailable',{status:405});
  const raw=url.searchParams.get('id')||'';
- if(!/^[1-9]\d{0,9}$/.test(raw))throw new Response('Invalid trip',{status:400});
+ if(resource==='assignment'&&!/^[1-9]\d{0,9}$/.test(raw))throw new Response('Invalid trip',{status:400});
  const text=await request.text();if(text.length>4096)throw new Response('Request too large',{status:413});
  let body;try{body=JSON.parse(text);}catch{throw new Response('Invalid JSON',{status:400});}
+ if(resource==='settings'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveBusinessSetting(db,staff,body)),{headers:{'Cache-Control':'no-store'}});
+ if(resource==='booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>createDatabaseBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
+ if(resource!=='assignment'||request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
  return Response.json(await assignDatabaseTrip(getDatabase(),staff,Number(raw),body),{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
 }

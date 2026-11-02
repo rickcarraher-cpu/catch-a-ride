@@ -5,6 +5,7 @@
     "test/auth.test.ts",
     "test/staff-reads.test.ts",
     "test/assignment-write.test.ts",
+    "test/business-write.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",
