@@ -158,3 +158,19 @@ and booking tokens/passwords are not selected. Timeline durations are explicitly
 illustrative 60 minutes, not verified actual service durations. More than 500 trips
 on a date fails visibly rather than silently truncating. Does not implement booking,
 assignment or settings writes. Those remain blocked without verified app staff sign-in.
+
+## First controlled database write: driver assignment
+
+Dedicated Preview exposes PATCH assignment only to verified app sessions resolved
+through explicit admin/dispatcher membership. Temporary review never grants write
+rights; its original branch/expiry remains unchanged. Same-origin POST protection,
+method/resource/ID/body validation and tenant-bound UPDATE/eligible-driver EXISTS
+are enforced. Assignment/unassignment cannot change start_time. No customer messages,
+payments or legacy handler side effects run. Other mutations are still disabled.
+
+Mock-query regressions cover bind values, absence of time/service writes, temporary
+review rejection, invalid input and cross-tenant/not-found failure. These are not
+live database write verification. A valid private test account session remains a
+blocking prerequisite for interactive database-write tests. Settings and booking
+creation writes are not implemented by this milestone. No live database or domain
+changes; do not promote as production ready.
