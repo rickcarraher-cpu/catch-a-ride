@@ -51,6 +51,7 @@ export function createOperationsFetch(storage: Pick<Storage, 'getItem' | 'setIte
 export async function operationsFetch(input: string, init?: RequestInit) {
   if(typeof window!=='undefined' && ['/preview/database-settings','/preview/database-assignments'].includes(window.location.pathname)){
     if((init?.method||'GET').toUpperCase()!=='GET'){
+      if(input==='/api/settings'&&init?.method==='POST'&&window.location.pathname==='/preview/database-settings')return fetch('/preview/database-api?resource=settings',{...init,credentials:'same-origin'});
       const match=input.match(/^\/api\/appointments\/([1-9]\d*)$/);
       if(match && init?.method==='PATCH' && window.location.pathname==='/preview/database-assignments')return fetch(`/preview/database-api?resource=assignment&id=${match[1]}`,{...init,credentials:'same-origin'});
       return Response.json({error:'This database write is not enabled'},{status:405});

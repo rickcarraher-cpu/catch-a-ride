@@ -174,3 +174,20 @@ live database write verification. A valid private test account session remains a
 blocking prerequisite for interactive database-write tests. Settings and booking
 creation writes are not implemented by this milestone. No live database or domain
 changes; do not promote as production ready.
+
+## Settings writes and basic booking API
+
+Verified app staff can POST `resource=booking` on the Preview database API. Supports
+existing same-tenant passenger, optional eligible driver, explicit-offset pickup time,
+addresses, notes, passenger count and vehicle category only. Unknown fields—including
+payment/notification/service payloads—fail closed. Transaction wraps ownership checks
+and insert; pending status and TEST DATABASE booked_by are explicit. No pricing,
+service rows, booking-number generation, round trips or new passenger creation yet.
+The original wizard remains samples; do not describe it as database-backed creation.
+
+Admin-only POST `resource=settings` saves eight explicit business keys, with time/rate
+validation and transaction-scoped advisory lock so no unique-key schema assumption is
+needed. Sending, credential and auth-bypass keys cannot be changed. Original database
+Settings page forwards POST only for app staff; backend validates independently.
+No automatic database migration or data write was executed against hosted databases.
+Real staff login/end-to-end verification remains deferred at user request.
