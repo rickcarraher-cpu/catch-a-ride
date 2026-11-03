@@ -232,3 +232,20 @@ limited test-booking access. Stored test bookings remain after expiration. Do no
 promote/merge this temporary design into production. Settings/assignment mutations
 are not enabled through this review capability. No hosted database writes executed
 by the agent; actual data rendering/full booking still requires owner verification.
+
+## Passenger-create integration correction
+
+Original wizard new-passenger POST now maps to an explicit tenant-scoped test API,
+with validated text/email, transaction advisory lock, duplicate email/phone matching
+within tenant and a returned ID. Duplicate records return existing_id for original
+wizard handling; ambiguous matches reject. Notification preference forced to none.
+Failed creation stops submission immediately. Existing customer profile PATCH remains
+unimplemented and is skipped in this database test rather than falsely logging success.
+
+Passenger creation and booking are separate transactions, matching original flow:
+a created passenger may remain if the subsequent booking is rejected. No claim of
+all-or-nothing passenger+booking is made. Isolated SQL test creates new passenger,
+then saves full ordinary booking/service lines, then retrieves the passenger through
+tenant-bound join. Hosted/browser save still unverified. Same exact branch/expiry
+(03:14 UTC November 3) and Vercel gate; new passenger resource explicitly added only
+to the bounded capability. No production changes or real notifications.

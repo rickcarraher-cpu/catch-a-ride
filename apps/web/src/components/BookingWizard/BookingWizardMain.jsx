@@ -781,11 +781,15 @@ export function BookingWizardMain({
             "[BookingWizard] Duplicate passenger detected, using existing client id:",
             resolvedClientId,
           );
+        } else {
+          setSubmissionError(clientData.error || 'Passenger could not be created. Booking was not submitted.');
+          return;
         }
       } catch (err) {
-        console.error("Failed to create client:", err);
+        setSubmissionError('Passenger could not be created. Booking was not submitted.');
+        return;
       }
-    } else if (resolvedClientId) {
+    } else if (resolvedClientId && window.location.pathname !== "/preview/database-book") {
       // Update existing client with latest phone/email/notification preference
       try {
         await fetch(`/api/clients/${resolvedClientId}`, {
