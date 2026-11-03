@@ -1,3 +1,4 @@
+import { readWizardList } from "../../../../app/preview/read-list";
 import { sampleFetch as fetch } from "../../../../app/preview/wizard-samples";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ export function Step4Location({
       queryFn: async () => {
         const res = await fetch("/api/settings/preferred-locations");
         if (!res.ok) throw new Error("Failed to fetch locations");
-        return res.json();
+        return readWizardList(res);
       },
     });
 

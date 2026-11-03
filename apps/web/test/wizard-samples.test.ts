@@ -52,3 +52,10 @@ test('two sample vehicles match categories and assigned drivers without network'
   const saved = await api('/api/appointments',post({...payload,vehicle_id:2}));
   assert.equal(saved.status,201); assert.equal((await saved.json()).vehicle_id,2);
 });
+
+import {readWizardList} from '../app/preview/read-list';
+test('wizard list reads reject unsupported objects rather than poisoning shared cache',async()=>{
+ await assert.rejects(readWizardList(Response.json({error:'Unsupported'},{status:501})));
+ await assert.rejects(readWizardList(Response.json({error:'Wrong shape'})));
+ assert.deepEqual(await readWizardList(Response.json([{id:1}])),[{id:1}]);
+});

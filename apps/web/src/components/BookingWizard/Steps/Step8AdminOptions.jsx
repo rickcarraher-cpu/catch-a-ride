@@ -1,3 +1,4 @@
+import { readWizardList } from "../../../../app/preview/read-list";
 import { sampleFetch as fetch } from "../../../../app/preview/wizard-samples";
 /**
  * Step 8: Admin Options (Dispatch Mode Only)
@@ -42,7 +43,7 @@ export function Step8AdminOptions({
         `/api/vehicle-assignments?employee_id=${formData.employee_id}`,
       );
       if (!res.ok) throw new Error("Failed to fetch driver vehicles");
-      return res.json();
+      return readWizardList(res);
     },
     enabled: !!formData.employee_id,
   });
@@ -53,7 +54,7 @@ export function Step8AdminOptions({
     queryFn: async () => {
       const res = await fetch("/api/weddings?window=all");
       if (!res.ok) return [];
-      const data = await res.json();
+      const data = await readWizardList(res);
       return data.sort(
         (a, b) => new Date(b.wedding_date) - new Date(a.wedding_date),
       );
