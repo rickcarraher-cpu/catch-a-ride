@@ -1,6 +1,9 @@
-import type {LoaderFunctionArgs} from 'react-router';import {readReviewStaff} from '../lib/review-context.server';import {getDatabase,authUnavailable} from '../lib/auth.server';import {readDailySchedule} from '../lib/schedule-read.server';import {readUnpaidReport} from '../lib/report-read.server';
+import {readRecurringTrips} from '../lib/recurring-read.server';
+import type {LoaderFunctionArgs} from 'react-router';import {readReviewStaff} from '../lib/review-context.server';import {getDatabase,authUnavailable} from '../lib/auth.server';import {readDailySchedule} from '../lib/schedule-read.server';import {readUnpaidReport,readPaymentPeriod} from '../lib/report-read.server';
 export async function loader({request}:LoaderFunctionArgs){try{const staff=await readReviewStaff(request);const url=new URL(request.url);const type=url.searchParams.get('type');let result;
- if(type==='unpaid')result=await readUnpaidReport(getDatabase(),staff);
+ if(type==='recurring')result=await readRecurringTrips(getDatabase(),staff);
+ else if(type==='payments')result=await readPaymentPeriod(getDatabase(),staff,url.searchParams.get('start')||'',url.searchParams.get('end')||'');
+ else if(type==='unpaid')result=await readUnpaidReport(getDatabase(),staff);
  else if(type==='trips')result=await readDailySchedule(getDatabase(),staff,url.searchParams.get('start')||'',url.searchParams.get('end')||'',true);
  else throw new Response('Unknown report',{status:404});
  return Response.json(result,{headers:{'Cache-Control':'no-store'}});

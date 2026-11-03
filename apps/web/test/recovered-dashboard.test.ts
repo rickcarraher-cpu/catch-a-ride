@@ -78,3 +78,8 @@ test('expense and daily review controls route to real protected screens',()=>{
  for(const page of ['expenses','five-pm-reminder','receipts-needed'])assert.equal(databaseDashboardLink('/'+page),'/preview/'+page);
  const html=renderRecoveredDashboard('database');assert.ok(html.includes('href="/preview/receipts-needed"'));
 });
+
+test('payment report and recurring review links are connected',()=>{
+ for(const name of ['weekly-payments','payments-by-method'])assert.equal(databaseDashboardLink('/reports/'+name),'/preview/reports/'+name);
+ assert.equal(databaseDashboardLink('/recurring'),'/preview/recurring');
+});

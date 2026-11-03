@@ -19,7 +19,8 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
  if(href==='/book/catch-a-ride')return '/preview/online-book';
- if(['/reports/all-trips','/reports/by-driver','/reports/unpaid-trips'].includes(href))return '/preview'+href;
+ if(['/reports/all-trips','/reports/by-driver','/reports/unpaid-trips','/reports/weekly-payments','/reports/payments-by-method'].includes(href))return '/preview'+href;
+ if(href==='/recurring')return '/preview/recurring';
  if(href==='/expenses')return '/preview/expenses';
  if(href==='/five-pm-reminder')return '/preview/five-pm-reminder';
  if(href==='/receipts-needed')return '/preview/receipts-needed';

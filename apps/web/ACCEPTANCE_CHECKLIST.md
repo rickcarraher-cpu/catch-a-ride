@@ -173,3 +173,14 @@ receipt flag list includes cancelled flagged trips (matches legacy source), excl
 deleted; date bounded explicitly for DST. No automatic hosted data writes by tests.
 Access expiry unchanged. Special-equipment passenger-note change remains pending
 clarification; no ambiguous request text was copied into passenger profiles.
+
+## Payment report / recurring-review batch
+Original Weekly Payments and Payments by Method connected to bounded <=32-day
+Central payment_date reads, tenant-scoped passenger/driver joins and stored
+payments_total/tips_total. No provider reconciliation or payment mutation; figures
+are copied trip snapshots by payment_date, not a certified transaction-ledger audit.
+Original week toggles/print controls restored; TEST row navigation goes to limited
+editor. Recurring Trips original table shows imported active definitions, time,
+frequency, driver, occurrences and stored service durations; all generators and
+create/edit/delete disabled. This is read-only recurring review, not completion of
+recurring booking functionality. Existing access expiry unchanged.

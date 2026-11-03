@@ -19,3 +19,21 @@ test('weekly trip reads preserve cancelled records and stored totals but reject 
  await assert.rejects(readDailySchedule(db,staff,'2026-11-01','2026-11-08',true));await assert.rejects(readDailySchedule(db,staff,'2026-11-07','2026-11-01',true));
  }finally{await pg.close();}
 });
+
+import {readPaymentPeriod} from '../app/lib/report-read.server';
+test('payment report uses stored payment totals and Central payment_date range without provider calls',async()=>{
+ const pg=new PGlite();const db={query:(sql:string,args?:unknown[])=>pg.query(sql,args)} as unknown as Pick<Pool,'query'>;
+ try{for(const f of ['management','schedule'])await pg.exec(readFileSync(new URL(`./fixtures/${f}-schema.sql`,import.meta.url),'utf8'));
+ const entries=[[1,1,'2026-11-01T04:59:59Z','Cash',9],[2,1,'2026-11-01T05:00:00Z','Cash',0.1],[3,1,'2026-11-02T05:59:59Z','Cash',0.2],[4,1,'2026-11-02T06:00:00Z','Cash',8],[5,2,'2026-11-01T12:00:00Z','Cash',999]];
+ for(const [id,tenant,paid,method,total] of entries)await db.query(`INSERT INTO appointments(id,tenant_id,start_time,status,payment_date,payment_method,payments_total,tips_total,services_total) VALUES($1,$2,'2026-12-01T12:00:00Z','pending',$3,$4,$5,0,777)`,[id,tenant,paid,method,total]);
+ const r=await readPaymentPeriod(db,staff,'2026-11-01','2026-11-01');assert.deepEqual(r.trips.map(t=>t.id),[2,3]);assert.equal(r.grandTotal.payments_total,0.3);assert.equal(r.totals.Cash.payments_total,0.3);assert.equal(Number(r.trips[0].services_total),777);await assert.rejects(readPaymentPeriod(db,staff,'2026-01-01','2026-12-31'));
+ }finally{await pg.close();}
+});
+
+import {readRecurringTrips} from '../app/lib/recurring-read.server';
+test('recurring review scopes tenant and exposes durations but no nested private payloads',async()=>{
+ const pg=new PGlite();const db={query:(q:string,p?:unknown[])=>pg.query(q,p)} as unknown as Pick<Pool,'query'>;
+ try{await pg.exec(readFileSync(new URL('./fixtures/management-schema.sql',import.meta.url),'utf8'));await pg.exec(`CREATE TABLE recurring_appointments(id serial,tenant_id int,client_id int,employee_id int,start_time time,frequency text,day_of_week int,destination text,num_occurrences int,notes text,services_data jsonb,is_deleted boolean);INSERT INTO clients(id,tenant_id,name) VALUES(1,1,'Local'),(2,2,'Foreign');INSERT INTO recurring_appointments(tenant_id,client_id,services_data) VALUES(1,1,'[{"duration_minutes":75,"quantity":2,"private":"NEVER"}]'),(2,2,'[]');`);
+ const r=await readRecurringTrips(db,staff);assert.equal(r.length,1);assert.equal(r[0].client_name,'Local');assert.equal(r[0].services_data[0].duration_minutes,'75');assert(!JSON.stringify(r).includes('NEVER'));assert(!JSON.stringify(r).includes('Foreign'));
+ }finally{await pg.close();}
+});
