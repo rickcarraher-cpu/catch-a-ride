@@ -131,3 +131,18 @@ navigation normalizes to day 1 to avoid Jan 31 skipping February; day click open
 original protected calendar. No external calls or database mutations. Existing
 access expiry unchanged. Tests distinguish month counts/day details from full
 functional parity; financial/advanced/report features remain unfinished.
+
+## Original report batch
+All Trips (daily/date/search/print), Trips by Driver (Sun–Sat/driver and dispatch
+views/print), and Unpaid Trips (stored balance/method grouping/refresh) restored.
+Fare/tip fields read from appointments.services_total/tips_total; no second add-on
+reconstruction included. Group/report sums aggregate these stored amounts. Unpaid
+balances use stored balance_due, exclude paid/cancelled/deleted, include past and
+future dates. Operational payment URLs and message contents never returned; only
+pending-link metadata (provider/status/created date) is visible; resend disabled.
+Existing TEST editor reachable; imported rows read-only. Days/weeks bounded to
+500/3500 records and unpaid capped at 5000 with visible rejection on overflow.
+Local schema tests cover .10+.20 balances, tenant/foreign service joins, stored
+fare versus line-price disagreement, cancelled-week rows, and date limits.
+No writes, production/provider actions or access-window extension by this batch.
+Still not whole-app readiness; other reports/financial/advanced actions incomplete.

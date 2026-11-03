@@ -63,3 +63,7 @@ test('both original calendars are real test-database destinations',()=>{
  assert.equal(databaseDashboardLink('/calendar'),'/preview/calendar');
  assert.equal(databaseDashboardLink('/calendar-glance'),'/preview/calendar-glance');
 });
+
+test('three report destinations route to protected database-backed screens',()=>{
+ for(const report of ['all-trips','by-driver','unpaid-trips'])assert.equal(databaseDashboardLink('/reports/'+report),'/preview/reports/'+report);
+});

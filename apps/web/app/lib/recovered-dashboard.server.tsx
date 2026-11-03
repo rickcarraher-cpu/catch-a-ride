@@ -18,6 +18,7 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
  if(href==='/book/catch-a-ride')return '/preview/online-book';
+ if(['/reports/all-trips','/reports/by-driver','/reports/unpaid-trips'].includes(href))return '/preview'+href;
  if(href==='/calendar')return '/preview/calendar';
  if(href==='/calendar-glance')return '/preview/calendar-glance';
  if(href==='/schedule')return '/preview/daily-schedule';
