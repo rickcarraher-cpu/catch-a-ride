@@ -178,7 +178,7 @@ export default function PassengersPage() {
             <button
               onClick={() => {
                 // Navigate to trips page to create a new trip using the admin TripModal
-                window.location.href = "/trips?new=true";
+                window.location.href = "/preview/database-book";
               }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
             >
@@ -334,7 +334,7 @@ export default function PassengersPage() {
                     </p>
                   </td>
                   <td className="px-6 py-4 text-xs text-gray-500">
-                    {new Date(client.created_at).toLocaleDateString()}
+                    {client.created_at ? new Date(client.created_at).toLocaleDateString() : "—"}
                   </td>
                 </tr>
               ))}
@@ -415,7 +415,7 @@ export default function PassengersPage() {
               <button
                 onClick={() => {
                   // Navigate to trips page and open trip modal with this passenger pre-selected
-                  window.location.href = `/trips?client_id=${newlyCreatedClient.id}&open_modal=true`;
+                  window.location.href = `/preview/database-book?client_id=${newlyCreatedClient.id}`;
                 }}
                 className="px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
               >

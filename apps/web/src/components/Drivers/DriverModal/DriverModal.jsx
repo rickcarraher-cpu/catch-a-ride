@@ -30,6 +30,7 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
     state: driver?.state || "",
     zip_code: driver?.zip_code || "",
     notes: driver?.notes || "",
+    adp_worker_id: driver?.adp_worker_id || "",
     color:
       driver?.color ||
       (() => {

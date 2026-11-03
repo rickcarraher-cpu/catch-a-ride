@@ -3,7 +3,7 @@ import type {Staff} from './staff-reads.server';
 type DB=Pick<Pool,'query'>;
 type Kind='drivers'|'passengers'|'services'|'vehicles';
 const spec={
- drivers:{table:'employees',text:['name','first_name','last_name','email','phone','street_address','city','state','zip_code','notes','color','profile_image_url'],bool:['is_active','is_driver','is_tour_agent','can_cancel_trip','copy_communications_to_company'],num:['salary_rate','hourly_rate','rotation_order']},
+ drivers:{table:'employees',text:['name','first_name','last_name','email','phone','street_address','city','state','zip_code','notes','color','profile_image_url','adp_worker_id'],bool:['is_active','is_driver','is_tour_agent','can_cancel_trip','copy_communications_to_company'],num:['salary_rate','hourly_rate','rotation_order']},
  passengers:{table:'clients',text:['name','email','phone','notes','notification_preference','address','street_address','city','state','zip_code','cc_emails','referral_source'],bool:['is_active'],num:[]},
  services:{table:'services',text:['name','description'],bool:['is_active','is_variable_price','is_airport_service','is_addon','is_tip_addon','can_passenger_request'],num:['default_price','duration_minutes','display_order']},
  vehicles:{table:'vehicles',text:['name','year','color','plate','category'],bool:['is_active'],num:['employee_id','passenger_capacity']},
@@ -30,7 +30,7 @@ export async function saveManagement(db:DB,staff:Staff,resource:string,id:number
   if((cfg.bool as readonly string[]).includes(key)&&typeof val!=='boolean')throw invalid(`Invalid ${key}`);
   if((cfg.num as readonly string[]).includes(key)&&val!==null){if(typeof val!=='number'||!Number.isFinite(val)||(val<0&&key!=='default_price')||Math.abs(val)>1000000)throw invalid(`Invalid ${key}`);if(['duration_minutes','display_order','passenger_capacity','employee_id','rotation_order'].includes(key)&&!Number.isSafeInteger(val))throw invalid(`Invalid ${key}`);}
  }
- if('email' in d&&d.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(d.email)))throw invalid('Invalid email');
+ if('email' in d&&d.email&&(String(d.email).split(',').length>10||String(d.email).split(',').some(email=>! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))))throw invalid('Invalid email');
  if('profile_image_url' in d&&d.profile_image_url&&!/^https:\/\//.test(String(d.profile_image_url)))throw invalid('Use an HTTPS image URL');
  if('salary_rate' in d&&d.salary_rate!==null&&Number(d.salary_rate)>1)throw invalid('Commission must be between 0 and 1');
  if(resource==='passengers'&&'notification_preference' in d&&!['both','email','sms','none'].includes(String(d.notification_preference)))throw invalid('Invalid notification preference');
