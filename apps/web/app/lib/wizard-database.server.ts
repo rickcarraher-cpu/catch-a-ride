@@ -3,7 +3,7 @@ import type {Staff} from './staff-reads.server';
 import {createDatabaseBooking} from './business-write.server';
 type DB=Pick<Pool,'query'>;
 export async function readWizardData(db:DB,staff:Staff,resource:string,search=''){
- if(resource==='services')return (await db.query(`SELECT id,name,description,default_price,duration_minutes,is_variable_price,is_airport_service,is_addon,is_tip_addon,can_passenger_request FROM services WHERE tenant_id=$1 AND is_active=true ORDER BY display_order,id LIMIT 200`,[staff.tenantId])).rows;
+ if(resource==='services')return (await db.query(`SELECT id,name,description,default_price,duration_minutes,is_active,display_order,is_variable_price,is_airport_service,is_addon,is_tip_addon,can_passenger_request FROM services WHERE tenant_id=$1 AND is_active=true ORDER BY display_order,id LIMIT 200`,[staff.tenantId])).rows;
  if(resource==='drivers')return (await db.query(`SELECT id,name,is_active FROM employees WHERE tenant_id=$1 AND is_active=true ORDER BY name LIMIT 200`,[staff.tenantId])).rows;
  if(resource==='clients'){
   if(search.trim().length<2)return [];

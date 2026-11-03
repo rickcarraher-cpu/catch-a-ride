@@ -32,3 +32,13 @@ test('unsupported booking options explain the specific blocker without database 
   try{await saveWizardBooking(db,staff,{[field]:value});assert.fail('Expected rejection');}catch(error){assert.ok(error instanceof Response);assert.ok((await error.text()).includes(expected));}
  }
 });
+
+test('customer wizard receives active and ordering metadata required by its service filters',async()=>{
+ const pg=new PGlite();const db={query:(s:string,p?:unknown[])=>pg.query(s,p)} as unknown as Pick<Pool,'query'>;
+ try{await pg.exec(`CREATE TABLE services(id int,tenant_id int,name text,description text,default_price numeric,duration_minutes int,is_active bool,display_order int,is_variable_price bool,is_airport_service bool,is_addon bool,is_tip_addon bool,can_passenger_request bool);INSERT INTO services VALUES(1,1,'Airport','',50,60,true,1,false,true,false,false,true),(2,1,'Stop','',10,10,true,2,false,false,true,false,true),(3,2,'Other tenant','',50,60,true,1,false,false,false,false,true);`);
+ const rows=await readWizardData(db,staff,'services');
+ const main=rows.filter(s=>s.is_active&&!s.is_addon).sort((a,b)=>a.display_order-b.display_order);
+ const addons=rows.filter(s=>s.is_active&&s.is_addon);
+ assert.equal(main.length,1);assert.equal(main[0].id,1);assert.equal(addons.length,1);assert.equal(addons[0].id,2);
+ }finally{await pg.close();}
+});
