@@ -290,3 +290,15 @@ No rescheduling, setting edits or external messages granted through temporary re
 PGlite regression covers TEST assignment/unassignment, non-test and cross-tenant
 rejection, wrong-tenant drivers and unchanged pickup time. No actual hosted write
 verification performed by agent. User must test refresh persistence on TEST booking.
+
+## Original TEST metadata editor
+
+Database list has explicit Edit test booking links to original TripModal, reading
+selected fields/services only for TEST-% tenant-bound records. Metadata PATCH locks
+the record within transaction and validates text before update. Time, passenger,
+assignment, services/prices and unsupported changes reject rather than silently
+changing or discarding values. External actions use a dedicated failing-closed
+transport; editor API can only read scoped settings/vehicles/current passenger and
+PATCH metadata. No provider/notification handler runs. Original editor source debug
+value logging removed. Existing temporary expiry unchanged; after expiry app staff
+sign-in needed. Actual hosted UI/save unverified; regression uses query adapter.

@@ -1,3 +1,4 @@
+import { editorFetch as fetch } from "../../app/preview/editor-fetch";
 import { useQuery } from "@tanstack/react-query";
 
 export function useTransactions(tripId) {

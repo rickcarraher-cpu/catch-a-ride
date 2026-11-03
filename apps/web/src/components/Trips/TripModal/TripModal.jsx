@@ -1,3 +1,4 @@
+import { editorFetch as fetch } from "../../../../app/preview/editor-fetch";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { XCircle } from "lucide-react";
@@ -542,9 +543,7 @@ export function TripModal({
   const handleSave = () => {
     // Prevent double-submit if mutation is already in progress
     if (mutation.isPending) {
-      console.log(
-        "[TripModal] Save already in progress, ignoring duplicate click",
-      );
+
       return;
     }
 
@@ -553,10 +552,8 @@ export function TripModal({
 
     // For edits: skip ALL prompts and save directly without sending
     if (trip) {
-      console.log(
-        "[TripModal] Editing existing trip - saving without notification",
-      );
-      console.log("[TripModal] Form data:", formData);
+
+
       shouldCloseRef.current = false;
       mutation.mutate({ ...formData, send_notification: false });
       return;
@@ -602,7 +599,7 @@ export function TripModal({
   const handleConfirmSave = (sendNotification) => {
     // Prevent multiple submissions if mutation is already in progress
     if (mutation.isPending) {
-      console.log("Mutation already in progress, ignoring duplicate call");
+
       return;
     }
 
@@ -687,19 +684,17 @@ export function TripModal({
       const isReturnTrip = notesLower.includes("return trip");
       const finalReturnDate = isReturnTrip ? null : cleanData.return_date;
 
-      console.log("Saving trip with data:", cleanData);
-      console.log("Return flight info:", cleanData.returning_flight_info);
-      console.log("Return date:", finalReturnDate);
-      console.log("Is return trip (clearing return_date):", isReturnTrip);
-      console.log("Pickup address (built):", pickup_address);
-      console.log("Dropoff address (built):", dropoff_address);
-      console.log("Destination:", cleanData.destination);
-      console.log("Send notification:", cleanData.send_notification);
+
+
+
+
+
+
+
 
       const url = trip ? `/api/appointments/${trip.id}` : "/api/appointments";
       const method = trip ? "PATCH" : "POST";
 
-      console.log(`[TripModal] ${method} ${url}`);
 
       const res = await fetch(url, {
         method,
@@ -744,12 +739,11 @@ export function TripModal({
         }
       }
 
-      console.log("Server response:", result);
-      console.log("Distance from server:", result.distance_miles);
+
       return result;
     },
     onSuccess: async (result) => {
-      console.log("[TripModal] Save successful, invalidating queries");
+
 
       // Force immediate refetch of appointments to show changes right away
       await queryClient.invalidateQueries({

@@ -1,3 +1,4 @@
+import { editorFetch as fetch } from "../../../../app/preview/editor-fetch";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2 } from "lucide-react";
