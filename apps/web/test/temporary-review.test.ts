@@ -10,3 +10,15 @@ test('temporary review is limited to exact Preview branch and expiry',()=>{
  assert.equal(temporaryReviewEnabled(valid,Date.parse(REVIEW_CONFIG.expiresAt)+1),false);
  assert.equal(temporaryReviewEnabled(valid,NaN),false);
 });
+
+import {bookingReviewEnabled,bookingReviewResource,BOOKING_REVIEW_EXPIRY} from '../app/lib/booking-review.server';
+test('booking review exact branch expiry and resource boundaries',()=>{
+ const env={VERCEL_ENV:'preview',VERCEL_GIT_COMMIT_REF:'preview/bounded-booking-review'};
+ const before=Date.parse(BOOKING_REVIEW_EXPIRY)-1;
+ assert.equal(bookingReviewEnabled(env,before),true);
+ assert.equal(bookingReviewEnabled({...env,VERCEL_ENV:'production'},before),false);
+ assert.equal(bookingReviewEnabled({...env,VERCEL_GIT_COMMIT_REF:'main'},before),false);
+ assert.equal(bookingReviewEnabled(env,Date.parse(BOOKING_REVIEW_EXPIRY)),false);
+ assert.equal(bookingReviewResource('wizard-booking'),true);
+ for(const resource of ['assignment','settings','booking',null])assert.equal(bookingReviewResource(resource),false);
+});

@@ -1,3 +1,4 @@
+import {bookingReviewEnabled,BOOKING_REVIEW_EXPIRY} from '../lib/booking-review.server';
 import { Form, Link, redirect, useLoaderData } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 import { getAuth, getDatabase, authUnavailable } from '../lib/auth.server';
@@ -8,7 +9,7 @@ import { TripsTable } from '../../src/components/Trips/TripsTable';
 import './dashboard.css';
 export async function loader({request}: LoaderFunctionArgs) {
   requireDashboardPreview();
-  const temporary = temporaryReviewEnabled();
+  const temporary = temporaryReviewEnabled()||bookingReviewEnabled();
   if (!temporary && !request.headers.get('Cookie')?.includes('car_session=')) return redirect('/account/signin', {headers:{'Cache-Control':'no-store'}});
   try {
     let staff;
@@ -24,7 +25,7 @@ export async function loader({request}: LoaderFunctionArgs) {
     if (!/^[1-9]\d{0,3}$/.test(raw)) throw new Response('Invalid page', {status:400});
     const data = await readStaffDashboard(getDatabase(),staff,Number(raw));
     // Navigation in recovered layout remains isolated samples; explicitly label it.
-    return {...data, markup:renderRecoveredDashboard(),tenantId:staff.tenantId, reviewExpires:temporary ? REVIEW_CONFIG.expiresAt : null};
+    return {...data, markup:renderRecoveredDashboard(),tenantId:staff.tenantId, reviewExpires:temporary ? (bookingReviewEnabled()?BOOKING_REVIEW_EXPIRY:REVIEW_CONFIG.expiresAt) : null};
   } catch(error) { if(error instanceof Response) throw error; throw authUnavailable(error); }
 }
 export function headers(){return {'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow'};}

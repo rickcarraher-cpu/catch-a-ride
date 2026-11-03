@@ -214,3 +214,21 @@ test vehicle records are safely supplied. No app-auth bypass is extended.
 Isolated PostgreSQL tests exercise service totals/line persistence and rejected
 cross-tenant services; hosted saves and full original wizard flow are unverified.
 Do not call this operational parity or a ready-to-cut-over migration.
+
+## Owner-approved bounded booking review
+
+Dedicated `preview/bounded-booking-review` Preview only, expires November 3 2026
+03:14 UTC. Vercel Authentication is the external identity/access gate; no app cookie
+or general admin session is created. Exact branch/environment/time checks permit
+tenant 1 reads plus POST lookup/wizard-booking ONLY. Other write resources explicitly
+reject during this window, even for that review context. Same-origin, body limits,
+existing passenger/service/tenant validation and no-message/no-payment checks remain.
+No reset-email dependency. On expiry ordinary app sign-in applies again.
+
+Protection must remain enabled on project/generated deployment URLs; no share links,
+automation bypass, browser tool bypass or production-domain alias is created. This
+permits Vercel-authorized viewers, not verified application staff; owner approved this
+limited test-booking access. Stored test bookings remain after expiration. Do not
+promote/merge this temporary design into production. Settings/assignment mutations
+are not enabled through this review capability. No hosted database writes executed
+by the agent; actual data rendering/full booking still requires owner verification.

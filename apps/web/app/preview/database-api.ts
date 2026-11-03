@@ -1,3 +1,4 @@
+import {bookingReviewEnabled,bookingReviewResource,BOOKING_REVIEW_STAFF} from '../lib/booking-review.server';
 import {readWizardData,saveWizardBooking} from '../lib/wizard-database.server';
 import type {LoaderFunctionArgs,ActionFunctionArgs} from 'react-router';
 import {saveBusinessSetting,createDatabaseBooking,inBusinessTransaction} from '../lib/business-write.server';
@@ -25,10 +26,11 @@ export async function action({request}:ActionFunctionArgs){
  if(!['PATCH','POST'].includes(request.method))throw new Response('Method not allowed',{status:405});
  if(Number(request.headers.get('Content-Length')||0)>4096)throw new Response('Request too large',{status:413});
  try{
- const user=await getAuth().getUser(request);
- const staff=await resolveStaff(getDatabase(),user);
  const url=new URL(request.url);
  const resource=url.searchParams.get('resource');
+ const review=bookingReviewEnabled();
+ if(review&&!bookingReviewResource(resource))throw new Response('Temporary review allows only passenger lookup and limited test booking',{status:403});
+ const staff=review?BOOKING_REVIEW_STAFF:await resolveStaff(getDatabase(),await getAuth().getUser(request));
  if(!['assignment','settings','booking','wizard-booking','lookup'].includes(resource||''))throw new Response('Write unavailable',{status:405});
  if(resource==='lookup'&&request.method==='POST'){const d=await request.json();const matches=await readWizardData(getDatabase(),staff,'clients',String(d.value||''));return Response.json({found:matches.length>0,client:matches[0]||null,all_matches:matches},{headers:{'Cache-Control':'no-store'}});}
  const raw=url.searchParams.get('id')||'';
