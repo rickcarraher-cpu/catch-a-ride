@@ -49,6 +49,7 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
    (key==='tour_payment_split'&&value==='single')||
    (['tour_participants','tour_itinerary'].includes(key)&&Array.isArray(value)&&value.length===0)
  );
+ if(d.status!=null&&!['pending','needs_review','quote'].includes(String(d.status)))throw new Response('Unsupported booking status',{status:400});
  const lines=d.services;
  if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
  let cents=0;const validated=[];
@@ -66,7 +67,7 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  const addr=(prefix:string)=>d[`${prefix}_address`]||['street','city','state','zip'].map(k=>d[`${prefix}_${k}`]).filter(Boolean).join(', ');
  const record=await createDatabaseBooking(db,staff,{client_id:Number(d.client_id),employee_id:d.employee_id?Number(d.employee_id):null,start_time:d.start_time,pickup_address:addr('pickup'),dropoff_address:addr('dropoff'),notes:d.notes||'',num_people:d.num_people||1,vehicle_category:d.vehicle_category||''});
  for(const line of validated)await db.query(`INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity) VALUES($1,$2,$3,$4,$5)`,[record.id,line.id,line.price,line.duration,line.quantity]);
- await db.query(`UPDATE appointments SET services_total=$3,balance_due=$3,booking_number=$4,payment_status='unpaid',payment_method=$5,destination=$6,vehicle_id=$7 WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,cents/100,`TEST-${record.id}`,d.payment_method||null,d.destination||null,selectedVehicle]);
+ await db.query(`UPDATE appointments SET services_total=$3,balance_due=$3,booking_number=$4,payment_status='unpaid',payment_method=$5,destination=$6,vehicle_id=$7,status=$8 WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,cents/100,`TEST-${record.id}`,d.payment_method||null,d.destination||null,selectedVehicle,d.status||'pending']);
  const metadata:Record<string,unknown>={};
  for(const key of textFields)metadata[key]=d[key]||null;
  for(const key of countFields)metadata[key]=d[key]==null?null:Number(d[key]);

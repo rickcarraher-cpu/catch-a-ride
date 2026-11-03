@@ -302,3 +302,21 @@ transport; editor API can only read scoped settings/vehicles/current passenger a
 PATCH metadata. No provider/notification handler runs. Original editor source debug
 value logging removed. Existing temporary expiry unchanged; after expiry app staff
 sign-in needed. Actual hosted UI/save unverified; regression uses query adapter.
+
+## Original passenger-facing online booking test
+
+`/preview/online-book` restores the original `/book/[slug]` customer screen and its
+passenger lookup/submission hooks, not the dispatcher variant. Preview-only server
+loader requires current approved Vercel-protected review or real app staff login.
+No public customer access route launched. Lexical transport maps selected settings,
+services, lookup, passenger-create and booking resources to existing tenant-scoped
+API; unsupported calls fail closed. Existing passenger profiles are not updated or
+listed wholesale. New passenger address/CC-email metadata is validated and stored;
+notification preference remains none. One-way only; roundtrip/recurring/tour rejected
+before passenger writes. Messages/payments and advanced modes stay disconnected.
+
+Original confirmation kept visible instead of closing window. Original pricing
+logic remains for comparison, not a proven unified calculation system; complete live
+rate parity not asserted. needs_review status now saved rather than silently pending.
+No hosted writes by agent. Actual passenger UI/end-to-end save requires owner review;
+no share link or PreviewBrowser bypass is created for private imported data.

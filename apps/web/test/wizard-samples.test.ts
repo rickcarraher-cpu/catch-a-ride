@@ -59,3 +59,16 @@ test('wizard list reads reject unsupported objects rather than poisoning shared 
  await assert.rejects(readWizardList(Response.json({error:'Wrong shape'})));
  assert.deepEqual(await readWizardList(Response.json([{id:1}])),[{id:1}]);
 });
+
+test('online passenger transport maps services and saves to protected test API; unknown services stay blocked',async()=>{
+ const oldWindow=globalThis.window;const oldFetch=globalThis.fetch;const calls:string[]=[];
+ Object.defineProperty(globalThis,'window',{configurable:true,value:{location:{pathname:'/preview/online-book',origin:'https://preview.example'}}});
+ globalThis.fetch=async(input)=>{calls.push(String(input));return Response.json([]);};
+ try{
+  const {sampleFetch}=await import('../app/preview/wizard-samples');
+  await sampleFetch('/api/services');await sampleFetch('/api/appointments',{method:'POST',body:'{}'});
+  assert.ok(calls[0].startsWith('/preview/database-api?resource=services'));
+  assert.ok(calls[1].startsWith('/preview/database-api?resource=wizard-booking'));
+  const blocked=await sampleFetch('/api/appointments/message-only',{method:'POST',body:'{}'});assert.equal(blocked.status,501);assert.equal(calls.length,2);
+ }finally{globalThis.fetch=oldFetch;Object.defineProperty(globalThis,'window',{configurable:true,value:oldWindow});}
+});
