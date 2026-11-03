@@ -1,0 +1,18 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {PGlite} from '@electric-sql/pglite';import type {Pool} from 'pg';import {readAvailability,writeAvailability} from '../app/lib/availability.server';import {readCommunicationHistory,safeHistoryText} from '../app/lib/communication-read.server';
+const staff={employeeId:51,tenantId:1,isAdmin:false,isDispatcher:true};
+async function setup(){const pg=new PGlite();for(const file of ['management','schedule','availability-history'])await pg.exec(readFileSync(new URL(`./fixtures/${file}-schema.sql`,import.meta.url),'utf8'));await pg.exec("INSERT INTO employees(id,tenant_id,name) VALUES(1,1,'TEST DRIVER'),(2,2,'FOREIGN');");return {pg,db:{query:(sql:string,p?:unknown[])=>pg.query(sql,p)} as unknown as Pick<Pool,'query'>};}
+test('availability create/edit/remove persists, accepts DST offsets, prevents foreign driver moves',async()=>{const {pg,db}=await setup();try{
+ const form={employee_id:1,start_time:'2026-11-01T01:00:00-05:00',end_time:'2026-11-01T02:00:00-06:00',reason:'TEST ONLY',type:'blocked'};
+ const r=await writeAvailability(db,staff,null,form);let rows=await readAvailability(db,staff);assert.equal(rows.length,1);assert.equal(new Date(rows[0].end_time).getTime()-new Date(rows[0].start_time).getTime(),7200000);
+ await writeAvailability(db,staff,r.id,{...form,reason:'EDITED',type:'available'});rows=await readAvailability(db,staff,false,1);assert.equal(rows[0].reason,'EDITED');assert.equal(rows[0].type,'available');
+ await assert.rejects(writeAvailability(db,staff,r.id,{...form,employee_id:2}));await assert.rejects(writeAvailability(db,{...staff,tenantId:2},r.id,form));
+ for(const bad of [{...form,end_time:form.start_time},{...form,start_time:'2026-11-01T01:00'},{...form,tenant_id:2},{...form,type:'unknown'}])await assert.rejects(writeAvailability(db,staff,null,bad));
+ await writeAvailability(db,staff,r.id,{},true);assert.equal((await readAvailability(db,staff)).length,0);assert.equal((await pg.query<{is_deleted:boolean}>('SELECT is_deleted FROM blocked_times WHERE id=$1',[r.id])).rows[0].is_deleted,true);await assert.rejects(writeAvailability(db,staff,r.id,{},true));
+ }finally{await pg.close();}});
+test('history scopes tenant, removes live URLs and executable HTML, paginates independently',async()=>{const {pg,db}=await setup();try{
+ await pg.exec(`INSERT INTO email_logs(tenant_id,recipient_email,subject,body,status) VALUES(1,'test@example.test','TEST SUBJECT','<script>alert(1)</script><a href="https://live.invalid/SECRET">hello</a> https://live.invalid/TOKEN','sent'),(2,'foreign@example.test','FOREIGN','DO NOT RETURN','sent');INSERT INTO sms_messages(tenant_id,phone,message,direction) VALUES(1,'TEST','TEST https://live.invalid/TOKEN','outbound'),(2,'FOREIGN','FOREIGN','outbound');`);
+ const emails=await readCommunicationHistory(db,staff,'email',1);assert(emails.emails);assert.equal(emails.emails.length,1);const text=JSON.stringify(emails);assert(!text.includes('FOREIGN'));assert(!text.includes('SECRET'));assert(!text.includes('TOKEN'));assert(!text.includes('<script'));assert(text.includes('hello'));
+ const sms=await readCommunicationHistory(db,staff,'sms',1);assert(sms.messages);assert.equal(sms.messages.length,1);assert(!sms.messages[0].message.includes('https://'));
+ assert.deepEqual((await readCommunicationHistory(db,staff,'email',2)),{emails:[],hasMore:false});await assert.rejects(readCommunicationHistory(db,staff,'sms',0));
+ assert(!safeHistoryText('<img src=x onerror=alert(1)>hello').includes('<'));
+ }finally{await pg.close();}});

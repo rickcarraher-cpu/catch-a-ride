@@ -146,3 +146,15 @@ Local schema tests cover .10+.20 balances, tenant/foreign service joins, stored
 fare versus line-price disagreement, cancelled-week rows, and date limits.
 No writes, production/provider actions or access-window extension by this batch.
 Still not whole-app readiness; other reports/financial/advanced actions incomplete.
+
+## Availability and history batch
+Original Blocked Times, Manage Availability, Communication Log restored.
+One-time availability create/edit/soft-delete scoped through owning employees;
+Central timestamp validation, end>start/max-one-year bounds, and same-origin checks.
+Recurring definitions read-only, no generation or bulk cleanup. Soft deletion
+preserves records/history; no external notifications. Communication log pages are
+100 email and 100 SMS records each, filters/search page-local. Raw HTML never
+executed and operational URLs stripped from history; error/metadata blobs excluded.
+No resend or send functions activated. Existing protected window unchanged.
+Owner previously deferred trip editor's blocked vehicle changes; still unfinished.
+Not whole-system readiness; recurring/advanced/payment/report work still remains.

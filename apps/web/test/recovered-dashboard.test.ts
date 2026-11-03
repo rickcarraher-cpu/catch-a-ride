@@ -67,3 +67,9 @@ test('both original calendars are real test-database destinations',()=>{
 test('three report destinations route to protected database-backed screens',()=>{
  for(const report of ['all-trips','by-driver','unpaid-trips'])assert.equal(databaseDashboardLink('/reports/'+report),'/preview/reports/'+report);
 });
+
+test('availability and history links use connected protected pages',()=>{
+ assert.equal(databaseDashboardLink('/blocked-times'),'/preview/blocked-times');
+ assert.equal(databaseDashboardLink('/dashboard/admin/manage-availability'),'/preview/manage-availability');
+ assert.equal(databaseDashboardLink('/communication-log'),'/preview/communication-log');
+});

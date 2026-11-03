@@ -16,6 +16,7 @@
     "test/management-write.test.ts",
     "test/schedule-read.test.ts",
     "test/report-read.test.ts",
+    "test/availability-history.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",
