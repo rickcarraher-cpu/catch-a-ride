@@ -46,6 +46,6 @@ export async function action({request}:ActionFunctionArgs){
  if(resource==='settings'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveBusinessSetting(db,staff,body)),{headers:{'Cache-Control':'no-store'}});
  if(resource==='booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>createDatabaseBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource!=='assignment'||request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
- return Response.json(await assignDatabaseTrip(getDatabase(),staff,Number(raw),body),{headers:{'Cache-Control':'no-store'}});
+ return Response.json(await assignDatabaseTrip(getDatabase(),staff,Number(raw),body,review),{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)return Response.json({error:await error.text()},{status:error.status,headers:{'Cache-Control':'no-store'}});throw authUnavailable(error);}
 }

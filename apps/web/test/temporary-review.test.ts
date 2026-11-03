@@ -19,6 +19,6 @@ test('booking review exact branch expiry and resource boundaries',()=>{
  assert.equal(bookingReviewEnabled({...env,VERCEL_ENV:'production'},before),false);
  assert.equal(bookingReviewEnabled({...env,VERCEL_GIT_COMMIT_REF:'main'},before),false);
  assert.equal(bookingReviewEnabled(env,Date.parse(BOOKING_REVIEW_EXPIRY)),false);
- assert.equal(bookingReviewResource('wizard-booking'),true);assert.equal(bookingReviewResource('passenger'),true);
- for(const resource of ['assignment','settings','booking',null])assert.equal(bookingReviewResource(resource),false);
+ assert.equal(bookingReviewResource('wizard-booking'),true);assert.equal(bookingReviewResource('passenger'),true);assert.equal(bookingReviewResource('assignment'),true);
+ for(const resource of ['settings','booking',null])assert.equal(bookingReviewResource(resource),false);
 });

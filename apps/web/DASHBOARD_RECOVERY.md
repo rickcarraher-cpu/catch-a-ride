@@ -278,3 +278,15 @@ links to the original assignment timeline with America/Chicago pickup-date query
 Timeline initializes from date parameter on database route only. Other table actions
 remain disabled; temporary capability does not add assignment write rights. User must
 not interpret a date-specific read view as an enabled assignment write workflow.
+
+## Temporary TEST-only assignment capability
+
+Owner requested coherent database workflow. Existing Vercel-protected, exact-branch
+window through November 3 05:20 UTC now explicitly permits assignment PATCH for TEST-%
+booking numbers in tenant 1 only. SQL predicates enforce test-only and tenant scope;
+non-test imported bookings remain protected even if UI drag attempted. Same-origin,
+driver membership/activity validation and unchanged start_time remain enforced.
+No rescheduling, setting edits or external messages granted through temporary review.
+PGlite regression covers TEST assignment/unassignment, non-test and cross-tenant
+rejection, wrong-tenant drivers and unchanged pickup time. No actual hosted write
+verification performed by agent. User must test refresh persistence on TEST booking.
