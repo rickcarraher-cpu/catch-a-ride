@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderRecoveredDashboard, requireDashboardPreview, sampleDashboardLink } from "../app/lib/recovered-dashboard.server";
+import { renderRecoveredDashboard, requireDashboardPreview, sampleDashboardLink, databaseDashboardLink } from "../app/lib/recovered-dashboard.server";
 
 test("recovered layout renders without connecting any service and has no active controls", () => {
   const originalFetch = globalThis.fetch;
@@ -38,4 +38,11 @@ test("only explicitly supported booking links are enabled", () => {
   assert.equal(sampleDashboardLink('/trips?new=true&dispatch=true'), '/preview/book');
   assert.equal(sampleDashboardLink('/trips'), '#sample-trips');
   for (const href of ['/payments', '/drivers', '/trips?new=true&tour=true', 'https://external.example', 'javascript:alert(1)']) assert.equal(sampleDashboardLink(href), null);
+});
+
+test('database dashboard cannot route enabled links to sample pages',()=>{
+ assert.equal(databaseDashboardLink('/trips'),'/preview/database#database-trips');
+ assert.equal(databaseDashboardLink('/trips?new=true&dispatch=true'),'/preview/database-book');
+ assert.equal(databaseDashboardLink('/schedule-timeline'),'/preview/database-assignments');
+ const html=renderRecoveredDashboard('database');assert.doesNotMatch(html,/href="\/preview\/(book|settings|assignments)"|#sample-trips/);
 });

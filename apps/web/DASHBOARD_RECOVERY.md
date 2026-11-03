@@ -266,3 +266,15 @@ and booking creation. Specific saved values/refresh persistence not independentl
 inspected. Original temporary booking capability expires 03:14 UTC unchanged; no
 password-free extension performed. Remaining hosted verification requires authorized
 app sign-in or a separately approved bounded review window. Production unchanged.
+
+## Database-only trip navigation
+
+Database dashboard now renders an explicit database link map, not the sample map.
+All Trips anchors to database-trips, booking and assignments/settings stay on database
+routes, unknown links remain inert. Booking search binds tenant and literal substring
+search (booking number/passenger), optional TEST-% filter and bounded pagination.
+Newest-created ordering surfaces fresh tests regardless of pickup date. Each result
+links to the original assignment timeline with America/Chicago pickup-date query.
+Timeline initializes from date parameter on database route only. Other table actions
+remain disabled; temporary capability does not add assignment write rights. User must
+not interpret a date-specific read view as an enabled assignment write workflow.

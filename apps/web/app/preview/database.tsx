@@ -23,19 +23,23 @@ export async function loader({request}: LoaderFunctionArgs) {
     }
     const raw = new URL(request.url).searchParams.get('page') || '1';
     if (!/^[1-9]\d{0,3}$/.test(raw)) throw new Response('Invalid page', {status:400});
-    const data = await readStaffDashboard(getDatabase(),staff,Number(raw));
+    const url=new URL(request.url);const search=(url.searchParams.get('q')||'').trim();const testsOnly=url.searchParams.get('tests')==='1';
+    const data = await readStaffDashboard(getDatabase(),staff,Number(raw),search,testsOnly);
     // Navigation in recovered layout remains isolated samples; explicitly label it.
-    return {...data, markup:renderRecoveredDashboard(),tenantId:staff.tenantId, reviewExpires:temporary ? (bookingReviewEnabled()?BOOKING_REVIEW_EXPIRY:REVIEW_CONFIG.expiresAt) : null};
+    return {...data, markup:renderRecoveredDashboard('database'),search,testsOnly,tenantId:staff.tenantId, reviewExpires:temporary ? (bookingReviewEnabled()?BOOKING_REVIEW_EXPIRY:REVIEW_CONFIG.expiresAt) : null};
   } catch(error) { if(error instanceof Response) throw error; throw authUnavailable(error); }
 }
 export function headers(){return {'Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow'};}
 export default function DatabaseDashboard(){
-  const {trips,hasMore,settings,page,tenantId,markup,reviewExpires}=useLoaderData<typeof loader>();
-  return <main className="recovery-preview"><aside className="recovery-notice"><strong>Protected test database · READ ONLY · Tenant {tenantId}</strong><p>{reviewExpires ? `Temporary app-password-free review expires ${reviewExpires}. Access is controlled by Vercel Authentication, not an app session.` : "App-authenticated access."}</p><p>Imported records below are database-backed. Original layout links still open isolated samples, not real booking writes. No payments, email or SMS are enabled.</p>{reviewExpires ? <p>Close this tab when finished. App logout does not revoke this temporary Vercel-authorized review window.</p> : <Form method="post" action="/account/logout"><button>Sign Out</button></Form>}</aside>
+  const {trips,hasMore,settings,page,tenantId,markup,reviewExpires,search,testsOnly}=useLoaderData<typeof loader>();
+  return <main className="recovery-preview"><aside className="recovery-notice"><strong>Protected test database · READ ONLY · Tenant {tenantId}</strong><p>{reviewExpires ? `Temporary app-password-free review expires ${reviewExpires}. Access is controlled by Vercel Authentication, not an app session.` : "App-authenticated access."}</p><p>Imported records below are database-backed. Enabled dashboard links use this test database. Other features remain disconnected. No payments, email or SMS are enabled.</p>{reviewExpires ? <p>Close this tab when finished. App logout does not revoke this temporary Vercel-authorized review window.</p> : <Form method="post" action="/account/logout"><button>Sign Out</button></Form>}</aside>
     <div className="recovered-layout" dangerouslySetInnerHTML={{__html:markup}} />
-    <section className="dashboard-sample-trips"><nav><Link to="/preview/database-book">Book using test database (limited)</Link> · <Link to="/preview/database-assignments">Imported driver assignments (read only)</Link> · <Link to="/preview/database-settings">Imported settings (read only)</Link></nav><h2>Imported bookings · Read only</h2><p>Up to 50 records per page, newest first. Actions are disabled; no updates are made.</p>
+    <section id="database-trips" className="dashboard-sample-trips"><nav><Link to="/preview/database-book">Book using test database (limited)</Link> · <Link to="/preview/database-assignments">Imported driver assignments (read only)</Link> · <Link to="/preview/database-settings">Imported settings (read only)</Link></nav><h2>Database bookings · Newest created first</h2><p>Up to 50 records per page. Select a trip below to open its assignment date. Table edit/payment actions remain disabled.</p>
+      <Form method="get"><label>Booking number or passenger name<input name="q" defaultValue={search} maxLength={100}/></label><label><input type="checkbox" name="tests" value="1" defaultChecked={testsOnly}/> TEST bookings only</label><button type="submit">Search bookings</button></Form>
+      <nav><Link to="?tests=1#database-trips">Show test bookings</Link> · <Link to="#database-trips">Current results</Link></nav>
+      <ul>{trips.map(trip=><li key={trip.id}><Link to={`/preview/database-assignments?date=${new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago'}).format(new Date(trip.start_time))}`}>{trip.booking_number||`Trip ${trip.id}`} — {trip.client_name||'Passenger'} — {new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',dateStyle:'short',timeStyle:'short'}).format(new Date(trip.start_time))} Central · Open assignments</Link></li>)}</ul>
       <fieldset disabled><TripsTable sampleMode trips={trips} isLoading={false} error={null} onEdit={()=>{}} onDelete={()=>{}} onInvoice={()=>{}} onPay={()=>{}} onSendThankYou={null} onPageChange={()=>{}} /></fieldset>
-      <nav>{page>1&&<Link to={`?page=${page-1}`}>Previous page</Link>} <span>Page {page}</span> {hasMore&&<Link to={`?page=${page+1}`}>Next page</Link>}</nav>
+      <nav>{page>1&&<Link to={`?page=${page-1}&q=${encodeURIComponent(search)}&tests=${testsOnly?1:0}#database-trips`}>Previous page</Link>} <span>Page {page}</span> {hasMore&&<Link to={`?page=${page+1}&q=${encodeURIComponent(search)}&tests=${testsOnly?1:0}#database-trips`}>Next page</Link>}</nav>
       <h2>Imported business settings · Read only</h2><p>Only explicitly allowed business values; no credential or sending settings.</p><dl>{Object.entries(settings).map(([key,value])=><div key={key}><dt><strong>{key}</strong></dt><dd>{value}</dd></div>)}</dl>
     </section></main>;
 }

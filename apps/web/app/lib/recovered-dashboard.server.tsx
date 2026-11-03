@@ -12,7 +12,14 @@ export function sampleDashboardLink(href: string): string | null {
   return null;
 }
 
-export function renderRecoveredDashboard() {
+export function databaseDashboardLink(href:string):string|null {
+ if(href==='/trips')return '/preview/database#database-trips';
+ if(href==='/trips?new=true&dispatch=true'||href==='/trips?new=true')return '/preview/database-book';
+ if(href==='/settings-2')return '/preview/database-settings';
+ if(href==='/schedule-timeline'||href==='/schedule-builder')return '/preview/database-assignments';
+ return null;
+}
+export function renderRecoveredDashboard(mode:'sample'|'database'='sample') {
   const client = new QueryClient({ defaultOptions: { queries: {
     enabled: false, retry: false, placeholderData: [],
   } } });
@@ -24,7 +31,7 @@ export function renderRecoveredDashboard() {
     return html
       .replace(/<button\b/g, '<button disabled=""')
       .replace(/\bhref="([^"]*)"/g, (_match, href: string) => {
-        const target = sampleDashboardLink(href.replace(/&amp;/g, "&"));
+        const target = (mode==='database'?databaseDashboardLink:sampleDashboardLink)(href.replace(/&amp;/g, "&"));
         return target ? `href="${target}"` : 'aria-disabled="true" tabindex="-1"';
       })
       .replace(/<input\b/g, '<input disabled=""');
