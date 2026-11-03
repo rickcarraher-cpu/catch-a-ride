@@ -58,3 +58,14 @@ be completed/tested first. Automated tests do not replace deployed browser accep
 
 These prerequisites do not prevent independent code/test work on local synthetic
 records. They DO prevent an honest claim that every dashboard function is ready.
+
+## Messages follow-up
+
+Original Messages page now has a database-history route instead of unfinished
+placeholder. Tenant-scoped list/thread reads and unread filtering implemented with
+visible error state and bounded history limits. This does NOT complete messaging:
+sending/replies, mark read/urgent, deletion, recipient lookup, participant aggregation
+and pagination are still blocked/incomplete. No fake sent-success is returned.
+Hosted schema/history UI not verified; imported message columns inferred from
+original source and exercised against synthetic SQL schema only. Tests do not prove
+all dashboard actions connected; this remains explicitly incomplete.
