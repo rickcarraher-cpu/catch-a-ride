@@ -105,3 +105,16 @@ Still excluded: hard deletion, credential/role administration, profile upload/im
 provider, embedded blocked-time writes and per-vehicle profile editing. Reports,
 advanced bookings, financial actions, and broad all-functions parity remain
 unfinished. This update must not be described as whole-system acceptance ready.
+
+## Daily/print schedule batch
+Original daily schedule and Print Schedule restored with shared one-day database
+read service: Central Time half-open day bounds, including 23/25-hour DST days.
+Driver grouping includes inactive drivers if they have scheduled trips or blocks;
+company name, original service lines, blocked-time overlaps, and stored trip totals
+read from test database. No independent repricing or payment inference from
+transactions. Daily date navigation/search/grouping and print layout enabled.
+TEST-row Edit routes to existing limited editor; imported trips and financial/
+delete/send actions stay protected. Print SMS/email control disabled and transport
+rejects all writes. Read caps fail visibly rather than print incomplete schedules.
+No mobile tests per owner's scope. No production changes or access expiry extension.
+Calendars, broader reports and outstanding full-system work remain incomplete.

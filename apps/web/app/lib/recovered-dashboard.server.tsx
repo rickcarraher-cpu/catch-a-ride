@@ -18,6 +18,8 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
  if(href==='/book/catch-a-ride')return '/preview/online-book';
+ if(href==='/schedule')return '/preview/daily-schedule';
+ if(href==='/print-schedule')return '/preview/print-schedule';
  if(href==='/trips')return '/preview/database#database-trips';
  if(href==='/trips?new=true&dispatch=true'||href==='/trips?new=true')return '/preview/database-book';
  if(href==='/settings-2')return '/preview/database-settings';

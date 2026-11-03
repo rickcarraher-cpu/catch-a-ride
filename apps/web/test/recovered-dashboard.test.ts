@@ -53,3 +53,8 @@ test('review orders and online booking use real test destinations; unfinished li
  assert.ok(databaseDashboardLink('/payments')?.startsWith('/preview/feature?'));
  assert.equal(databaseDashboardLink('//outside.example'),null);
 });
+
+test('daily and print schedule dashboard links use actual protected database routes',()=>{
+ assert.equal(databaseDashboardLink('/schedule'),'/preview/daily-schedule');
+ assert.equal(databaseDashboardLink('/print-schedule'),'/preview/print-schedule');
+});
