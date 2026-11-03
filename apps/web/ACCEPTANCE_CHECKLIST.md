@@ -1,0 +1,60 @@
+# Desktop acceptance readiness — November 3
+
+This is NOT an all-functions-ready release. Do not switch production based on this
+checklist. Separate test database; external charges/customer communications disabled.
+
+## Consolidated daily workflow (implementation present)
+
+1. Customer online one-way booking: owner completed; needs_review queue screenshot
+   confirmed. Latest full browser replay not run by agent.
+2. Dispatch one-way booking/new passenger/service subtotal: owner completed earlier;
+   automated isolated database create/read regressions pass.
+3. All Trips/search/TEST filter/date-linked timeline: implemented; limited owner use.
+4. Review Orders queue: owner confirmed record. TEST-only approval/rejection now
+   implemented, needs hosted verification. No notification is sent on approval.
+5. Notes/address/destination/flight metadata edit: original editor connected;
+   visible table Edit fixed. Server-render and isolated SQL checks pass; actual
+   hosted editor save/reload still unverified.
+6. Assignment/unassignment: owner confirmed persistence and unchanged time.
+7. Specific vehicle selection: tenant/driver-checked save locally tested;
+   latest hosted selection persistence unverified.
+
+## Limited, not full daily-workflow coverage
+
+- Settings: eight ordinary business keys writable by real app admin only.
+  Current temporary capability does not authorize admin settings writes.
+- Passenger creation/lookup: implemented. Existing profile editing not implemented.
+- Vehicles/drivers: selected reads/fixtures, not full management CRUD.
+- Pricing: service subtotal stored, no certification of complete legacy
+  taxes/fees/commissions or unified calculation enforcement.
+- Timeline duration remains illustrative 60 minutes, not actual service duration.
+- TEST-only review/editor/assignment actions cannot change imported non-test trips.
+
+## Not ready; must be completed before broad acceptance
+
+- Full booking edit/time/service-price editing and conflict/concurrency behavior.
+- Round trips, recurring, tours/weddings and message-only booking.
+- Calendars, reports/payroll/expenses, availability/blocked-time management,
+  service/vehicle/category/passenger CRUD and all financial workflows.
+- Real provider sandbox payment/refund/reconciliation and designated test
+  email/SMS delivery. No providers configured or triggered by this work.
+- Backup/export/import completeness and verified restore/reconciliation.
+- Permanent app identity, removal of temporary branch bypass, production data
+  final sync/change-freeze/rollback reconciliation and explicit cutover approval.
+
+## Access
+
+Current owner-approved exact-branch Vercel-protected window ends November 3 12:23 UTC.
+No extension or broader app login is implied. Do not create public share/bypass links.
+No repeated owner patch-by-patch acceptance requested: remaining integrations should
+be completed/tested first. Automated tests do not replace deployed browser acceptance.
+
+## Next concrete prerequisites for blocked integration tests
+
+- Permanent supported staff login or separately approved bounded review, as needed.
+- Payment provider sandbox configuration entered privately by credential owner.
+- Explicit designated test message recipients and working sender configuration.
+- Original unfinished business rules confirmed before implementing new behavior.
+
+These prerequisites do not prevent independent code/test work on local synthetic
+records. They DO prevent an honest claim that every dashboard function is ready.
