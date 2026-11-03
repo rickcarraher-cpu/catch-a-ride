@@ -9,6 +9,7 @@
     "test/wizard-database.test.ts",
     "test/passenger-write.test.ts",
     "test/trip-edit.test.ts",
+    "test/workflow.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",

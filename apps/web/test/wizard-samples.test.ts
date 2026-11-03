@@ -72,3 +72,15 @@ test('online passenger transport maps services and saves to protected test API; 
   const blocked=await sampleFetch('/api/appointments/message-only',{method:'POST',body:'{}'});assert.equal(blocked.status,501);assert.equal(calls.length,2);
  }finally{globalThis.fetch=oldFetch;Object.defineProperty(globalThis,'window',{configurable:true,value:oldWindow});}
 });
+
+import {editorFetch} from '../app/preview/editor-fetch';
+test('editor routes TEST reads/updates to protected API and blocks payment/provider operations',async()=>{
+ const oldWindow=globalThis.window,oldFetch=globalThis.fetch;const calls:string[]=[];
+ Object.defineProperty(globalThis,'window',{configurable:true,value:{location:{pathname:'/preview/database-edit',origin:'https://preview.example',search:'?id=9'}}});
+ globalThis.fetch=async(input)=>{calls.push(String(input));return Response.json([]);};
+ try{await editorFetch('/api/appointments/9');await editorFetch('/api/appointments/9',{method:'PATCH',body:'{}'});
+ assert.ok(calls[0].includes('resource=trip&id=9'));assert.ok(calls[1].includes('resource=trip-edit&id=9'));
+ for(const path of ['/api/payments/square/checkout','/api/appointments/9/resend-driver-notification','https://external.example'])assert.equal((await editorFetch(path,{method:'POST',body:'{}'})).status,501);
+ assert.equal(calls.length,2);
+ }finally{globalThis.fetch=oldFetch;Object.defineProperty(globalThis,'window',{configurable:true,value:oldWindow});}
+});

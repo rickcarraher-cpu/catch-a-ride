@@ -104,6 +104,7 @@ export function TripModal({
     queryKey: ["settings"],
     queryFn: async () => {
       const res = await fetch("/api/settings");
+      if (!res.ok) throw new Error("Editor data could not be loaded");
       return res.json();
     },
     staleTime: 0, // Always fetch fresh settings to ensure business hours are current
@@ -121,6 +122,7 @@ export function TripModal({
     queryFn: async () => {
       const url = trip ? "/api/clients?include_inactive=true" : "/api/clients";
       const res = await fetch(url);
+      if (!res.ok) throw new Error("Editor data could not be loaded");
       return res.json();
     },
     enabled: !!trip || !clients, // Always fetch when editing a trip, or when no clients prop
