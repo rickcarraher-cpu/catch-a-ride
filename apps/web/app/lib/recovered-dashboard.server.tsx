@@ -14,6 +14,7 @@ export function sampleDashboardLink(href: string): string | null {
 
 export function databaseDashboardLink(href:string):string|null {
  if(href.startsWith('/preview/feature?destination='))return href;
+ if(['/drivers','/vehicles','/passengers','/services'].includes(href))return '/preview/manage/'+href.slice(1);
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
  if(href==='/book/catch-a-ride')return '/preview/online-book';

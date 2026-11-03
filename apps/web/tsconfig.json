@@ -12,6 +12,7 @@
     "test/workflow.test.ts",
     "test/review-order.test.ts",
     "test/messages-read.test.ts",
+    "test/management-read.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",

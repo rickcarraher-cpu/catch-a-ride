@@ -1,0 +1,12 @@
+import type {Pool} from 'pg';import type {Staff} from './staff-reads.server';
+export async function readManagement(db:Pick<Pool,'query'>,staff:Staff,resource:string,page=1){
+ if(!Number.isSafeInteger(page)||page<1||page>10000)throw new Response('Invalid page',{status:400});
+ if(resource==='drivers')return (await db.query(`SELECT id,tenant_id,name,email,phone,color,is_active,is_admin,is_dispatcher,is_driver,rotation_order,first_name,last_name FROM employees WHERE tenant_id=$1 ORDER BY name,id LIMIT 500`,[staff.tenantId])).rows;
+ if(resource==='passengers')return (await db.query(`SELECT id,name,email,phone,notes,is_active,notification_preference,address,street_address,city,state,zip_code,cc_emails,referral_source FROM clients WHERE tenant_id=$1 ORDER BY name,id LIMIT 200 OFFSET $2`,[staff.tenantId,(page-1)*200])).rows;
+ if(resource==='services')return (await db.query(`SELECT id,name,description,default_price,duration_minutes,is_active,is_variable_price,is_airport_service,is_addon,is_tip_addon,can_passenger_request,display_order FROM services WHERE tenant_id=$1 ORDER BY display_order,id LIMIT 500`,[staff.tenantId])).rows;
+ if(resource==='vehicles')return (await db.query(`SELECT v.id,v.employee_id,v.name,v.year,v.color,v.plate,v.category,v.passenger_capacity,v.is_active,e.name AS employee_name,
+ COALESCE((SELECT json_agg(json_build_object('id',d.id,'name',d.name)) FROM vehicle_assignments va JOIN employees d ON d.id=va.employee_id AND d.tenant_id=$1 WHERE va.vehicle_id=v.id),'[]'::json) AS assigned_drivers
+ FROM vehicles v JOIN employees e ON e.id=v.employee_id AND e.tenant_id=$1 WHERE NOT EXISTS(SELECT 1 FROM vehicle_assignments va JOIN employees d ON d.id=va.employee_id WHERE va.vehicle_id=v.id AND d.tenant_id IS DISTINCT FROM $1) ORDER BY v.id LIMIT 500`,[staff.tenantId])).rows;
+ if(resource==='vehicle-assignments')return (await db.query(`SELECT va.id AS assignment_id,va.vehicle_id,va.employee_id,v.name,v.category,v.passenger_capacity FROM vehicle_assignments va JOIN employees e ON e.id=va.employee_id AND e.tenant_id=$1 JOIN vehicles v ON v.id=va.vehicle_id JOIN employees owner ON owner.id=v.employee_id AND owner.tenant_id=$1 WHERE NOT EXISTS(SELECT 1 FROM vehicle_assignments x JOIN employees other ON other.id=x.employee_id WHERE x.vehicle_id=v.id AND other.tenant_id IS DISTINCT FROM $1) ORDER BY va.id LIMIT 1000`,[staff.tenantId])).rows;
+ throw new Response('Management read unavailable',{status:404});
+}

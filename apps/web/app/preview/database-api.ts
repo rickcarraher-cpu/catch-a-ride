@@ -1,3 +1,4 @@
+import {readManagement} from '../lib/management-read.server';
 import {readMessages} from '../lib/messages-read.server';
 import {reviewTestOrder} from '../lib/review-order.server';
 import {createTestPassenger} from '../lib/passenger-write.server';
@@ -18,7 +19,8 @@ export async function loader({request}:LoaderFunctionArgs){
  try{
  const staff=await readReviewStaff(request);const url=new URL(request.url);const resource=url.searchParams.get('resource');
  let result;
- if(resource==='messages')result=await readMessages(getDatabase(),staff,url.searchParams.get('conversation_id')||null,url.searchParams.get('phone')||null,url.searchParams.get('unread')==='1');
+ if(resource?.startsWith('manage-'))result=await readManagement(getDatabase(),staff,resource.slice(7),Number(url.searchParams.get('page')||'1'));
+ else if(resource==='messages')result=await readMessages(getDatabase(),staff,url.searchParams.get('conversation_id')||null,url.searchParams.get('phone')||null,url.searchParams.get('unread')==='1');
  else if(resource==='trip')result=await readEditableTrip(getDatabase(),staff,Number(url.searchParams.get('id')));
  else if(resource==='timeline')result=await readStaffTimeline(getDatabase(),staff,url.searchParams.get('date')||'');
  else if(resource==='settings')result=(await readStaffDashboard(getDatabase(),staff,1)).settings;

@@ -69,3 +69,17 @@ and pagination are still blocked/incomplete. No fake sent-success is returned.
 Hosted schema/history UI not verified; imported message columns inferred from
 original source and exercised against synthetic SQL schema only. Tests do not prove
 all dashboard actions connected; this remains explicitly incomplete.
+
+## Four-screen read batch
+
+Original Drivers, Vehicles, Passengers and Services now have protected database-backed
+read routes `/preview/manage/:section`, linked from original dashboard together.
+Selected driver fields omit passwords/tokens; vehicle ownership checks include
+legacy owner and reject cross-tenant assignments. Passengers use 200-row pages with
+separate page selector; services/drivers/vehicles capped at 500, assignments 1000.
+Original mutation controls (and internal filters) disabled via read-only fieldset.
+Create/update/delete/profile/service/category/assignment management is NOT delivered
+by this batch. Dedicated transport rejects mutations and unknown reads; no simulation
+is presented as saved. Hosted imported schemas/UI still unverified; query-boundary
+regression passes but is not database/browser acceptance. No provider calls or
+production changes; temporary review expiry November 3 12:23 UTC unchanged.
