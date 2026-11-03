@@ -1,7 +1,7 @@
 import { expenseFetch as fetch } from "../../../app/preview/expense-fetch";
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -330,6 +330,10 @@ function ExpenseModal({ onClose, onSuccess }) {
       return res.json();
     },
   });
+
+  useEffect(()=>{
+    if(categories.length&&!categories.some(c=>c.name===formData.method))setFormData(previous=>({...previous,method:categories[0].name}));
+  },[categories,formData.method]);
 
   const mutation = useMutation({
     mutationFn: async (data) => {
