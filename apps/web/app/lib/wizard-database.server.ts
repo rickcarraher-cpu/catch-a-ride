@@ -17,7 +17,12 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  const d=body as Record<string,unknown>;
  if(!d||typeof d!=='object'||Array.isArray(d))throw new Response('Invalid booking',{status:400});
  // This first database wizard path intentionally excludes modes needing separate workflows.
- if(d.is_tour||d._is_round_trip||d.return_date||d.wedding_id||d.vehicle_id||d.payment_method||d.send_notification===true)throw new Response('Use one-way, no specific vehicle, no payment method and Save Without Sending for this test milestone',{status:400});
+ if(d.is_tour)throw new Response('Tour booking is not connected yet',{status:400});
+ if(d._is_round_trip||d.return_date)throw new Response('Round-trip booking is not connected yet; choose one-way',{status:400});
+ if(d.wedding_id)throw new Response('Wedding booking is not connected yet',{status:400});
+ if(d.vehicle_id)throw new Response('Specific vehicle assignment is not connected yet; choose No specific vehicle',{status:400});
+ if(d.payment_method)throw new Response('Payment method must remain unselected for this limited test',{status:400});
+ if(d.send_notification===true)throw new Response('Choose Save Without Sending, then No — Save & Go to All Trips',{status:400});
  const lines=d.services;
  if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
  let cents=0;const validated=[];

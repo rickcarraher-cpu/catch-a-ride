@@ -18,3 +18,10 @@ test('wizard reads bind tenant, restrict vehicle ownership, and do not list all 
  for(const c of calls){assert.equal(c.args[0],1);assert.doesNotMatch(c.sql,/SELECT \*|password|token|UPDATE|INSERT/);}
  assert.match(calls[0].sql,/IS DISTINCT FROM \$1/);
 });
+
+test('unsupported booking options explain the specific blocker without database access',async()=>{
+ const db={query:async()=>{throw new Error('Must not query');}} as unknown as Pick<Pool,'query'>;
+ for(const [field,value,expected] of [['vehicle_id',1,'Specific vehicle'],['payment_method','Cash','Payment method'],['send_notification',true,'Save Without Sending'],['_is_round_trip',true,'Round-trip']] as const){
+  try{await saveWizardBooking(db,staff,{[field]:value});assert.fail('Expected rejection');}catch(error){assert.ok(error instanceof Response);assert.ok((await error.text()).includes(expected));}
+ }
+});

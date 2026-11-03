@@ -19,7 +19,7 @@ export async function loader({request}:LoaderFunctionArgs){
  else if(['services','drivers','clients','vehicles'].includes(resource||''))result=await readWizardData(getDatabase(),staff,resource!,url.searchParams.get('search')||'');
  else throw new Response('Read endpoint unavailable',{status:404});
  return Response.json(result,{headers:{'Cache-Control':'no-store'}});
- }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
+ }catch(error){if(error instanceof Response)return Response.json({error:await error.text()},{status:error.status,headers:{'Cache-Control':'no-store'}});throw authUnavailable(error);}
 }
 export async function action({request}:ActionFunctionArgs){
  requireDashboardPreview(); requireSameOrigin(request);
@@ -42,5 +42,5 @@ export async function action({request}:ActionFunctionArgs){
  if(resource==='booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>createDatabaseBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource!=='assignment'||request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
  return Response.json(await assignDatabaseTrip(getDatabase(),staff,Number(raw),body),{headers:{'Cache-Control':'no-store'}});
- }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
+ }catch(error){if(error instanceof Response)return Response.json({error:await error.text()},{status:error.status,headers:{'Cache-Control':'no-store'}});throw authUnavailable(error);}
 }
