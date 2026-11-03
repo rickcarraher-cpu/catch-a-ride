@@ -24,6 +24,12 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  if(d.payment_method!=null&&d.payment_method!==''&&!['Cash','Square Invoice','Venmo','Zelle','Farm','Comp','Credit Card','Square','Stripe'].includes(String(d.payment_method)))throw new Response('Unsupported payment preference',{status:400});
  if(d.send_notification===true)throw new Response('Choose Save Without Sending, then No — Save & Go to All Trips',{status:400});
  if(d.destination!=null&&(typeof d.destination!=='string'||d.destination.length>500))throw new Response('Destination must be text of at most 500 characters',{status:400});
+ const textFields=['pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','outgoing_flight_info','returning_flight_info','customs_clearance_location','requested_driver_name','booker_name','driver_notes','tentative_reason'] as const;
+ const countFields=['num_bags_checked','num_bags_carry_on','num_car_seats','num_golf_bags'] as const;
+ for(const key of textFields)if(d[key]!=null&&(typeof d[key]!=='string'||String(d[key]).length>2000))throw new Response('Invalid booking text field',{status:400});
+ for(const key of countFields)if(d[key]!=null&&(!Number.isInteger(Number(d[key]))||Number(d[key])<0||Number(d[key])>100))throw new Response('Invalid baggage count',{status:400});
+ if(d.distance_miles!=null&&(!Number.isFinite(Number(d.distance_miles))||Number(d.distance_miles)<0||Number(d.distance_miles)>100000))throw new Response('Invalid distance',{status:400});
+ for(const key of ['is_international_flight','needs_receipt','is_tentative'])if(d[key]!=null&&typeof d[key]!=='boolean')throw new Response('Invalid booking flag',{status:400});
  const lines=d.services;
  if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
  let cents=0;const validated=[];
@@ -36,11 +42,18 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
   validated.push({id:Number(row.service_id),price:price/100,quantity:Number(row.quantity),duration});
  }
  // Do not silently discard populated unsupported passenger/flight/admin fields.
- const supported=new Set(['client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','destination','payment_method','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
+ const supported=new Set([...textFields,...countFields,'distance_miles','is_international_flight','needs_receipt','is_tentative','client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','destination','payment_method','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
  for(const [key,value] of Object.entries(d))if(!supported.has(key)&&value!==null&&value!==undefined&&value!==false&&value!==''&&value!==0&&!(['_addon_legs','_addon_prices','_addon_quantities'].includes(key)&&typeof value==='object'&&Object.keys(value).length===0))throw new Response(`Field ${key} is not connected yet`,{status:400});
  const addr=(prefix:string)=>d[`${prefix}_address`]||['street','city','state','zip'].map(k=>d[`${prefix}_${k}`]).filter(Boolean).join(', ');
  const record=await createDatabaseBooking(db,staff,{client_id:Number(d.client_id),employee_id:d.employee_id?Number(d.employee_id):null,start_time:d.start_time,pickup_address:addr('pickup'),dropoff_address:addr('dropoff'),notes:d.notes||'',num_people:d.num_people||1,vehicle_category:d.vehicle_category||''});
  for(const line of validated)await db.query(`INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity) VALUES($1,$2,$3,$4,$5)`,[record.id,line.id,line.price,line.duration,line.quantity]);
  await db.query(`UPDATE appointments SET services_total=$3,balance_due=$3,booking_number=$4,payment_status='unpaid',payment_method=$5,destination=$6 WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,cents/100,`TEST-${record.id}`,d.payment_method||null,d.destination||null]);
+ const metadata:Record<string,unknown>={};
+ for(const key of textFields)metadata[key]=d[key]||null;
+ for(const key of countFields)metadata[key]=d[key]==null?null:Number(d[key]);
+ metadata.distance_miles=d.distance_miles==null?null:Number(d.distance_miles);
+ for(const key of ['is_international_flight','needs_receipt','is_tentative'])metadata[key]=d[key]===true;
+ const keys=Object.keys(metadata); // All keys originate from fixed server allowlists above.
+ await db.query(`UPDATE appointments SET ${keys.map((key,i)=>`${key}=$${i+3}`).join(',')} WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,...Object.values(metadata)]);
  return {...record,booking_number:`TEST-${record.id}`};
 }
