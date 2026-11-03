@@ -9,6 +9,7 @@ export default [
   route("dashboard", "dashboard/page.tsx"),
   route("preview/database", "preview/database.tsx"),
   route("preview/database-edit", "preview/database-edit.tsx"),
+  route("preview/feature", "preview/feature.tsx"),
   route("preview/online-book", "preview/online-book.tsx"),
   route("preview/database-book", "preview/database-book.tsx"),
   route("preview/database-api", "preview/database-api.ts"),

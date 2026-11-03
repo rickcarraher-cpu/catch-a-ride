@@ -46,3 +46,10 @@ test('database dashboard cannot route enabled links to sample pages',()=>{
  assert.equal(databaseDashboardLink('/schedule-timeline'),'/preview/database-assignments');
  const html=renderRecoveredDashboard('database');assert.doesNotMatch(html,/href="\/preview\/(book|settings|assignments)"|#sample-trips/);
 });
+
+test('review orders and online booking use real test destinations; unfinished links disclose status',()=>{
+ assert.equal(databaseDashboardLink('/trips?status=needs_review'),'/preview/database?status=needs_review#database-trips');
+ assert.equal(databaseDashboardLink('/book/catch-a-ride'),'/preview/online-book');
+ assert.ok(databaseDashboardLink('/payments')?.startsWith('/preview/feature?'));
+ assert.equal(databaseDashboardLink('//outside.example'),null);
+});
