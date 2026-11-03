@@ -141,7 +141,7 @@ export function DriverModalForm({
       </div>
 
       {/* Access Section */}
-      <div className="space-y-3 pt-4 border-t border-gray-200">
+      <fieldset disabled className="space-y-3 pt-4 border-t border-gray-200" title="Account credentials and roles are unchanged in this test">
         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Access
         </label>
@@ -176,7 +176,7 @@ export function DriverModalForm({
                 Password
               </span>
               <span className="text-xs text-gray-400">
-                {formData.password ? "✅ Password set" : "⚠️ No password"}
+                Account credentials are not loaded
               </span>
             </div>
 
@@ -244,7 +244,7 @@ export function DriverModalForm({
             </div>
           </div>
         </div>
-      </div>
+      </fieldset>
 
       {/* Commission */}
       <div className="space-y-1.5">

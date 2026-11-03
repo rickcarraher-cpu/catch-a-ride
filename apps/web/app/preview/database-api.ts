@@ -19,14 +19,14 @@ export async function loader({request}:LoaderFunctionArgs){
  try{
  const staff=await readReviewStaff(request);const url=new URL(request.url);const resource=url.searchParams.get('resource');
  let result;
- if(resource?.startsWith('manage-'))result=await readManagement(getDatabase(),staff,resource.slice(7),Number(url.searchParams.get('page')||'1'));
+ if(resource?.startsWith('manage-'))result=await readManagement(getDatabase(),staff,resource.slice(7),Number(url.searchParams.get('page')||'1'),{vehicleId:url.searchParams.has('vehicle_id')?Number(url.searchParams.get('vehicle_id')):undefined,employeeId:url.searchParams.has('employee_id')?Number(url.searchParams.get('employee_id')):undefined});
  else if(resource==='messages')result=await readMessages(getDatabase(),staff,url.searchParams.get('conversation_id')||null,url.searchParams.get('phone')||null,url.searchParams.get('unread')==='1');
  else if(resource==='trip')result=await readEditableTrip(getDatabase(),staff,Number(url.searchParams.get('id')));
  else if(resource==='timeline')result=await readStaffTimeline(getDatabase(),staff,url.searchParams.get('date')||'');
  else if(resource==='settings')result=(await readStaffDashboard(getDatabase(),staff,1)).settings;
  else if(['services','drivers','clients','vehicles','vehicle-assignments'].includes(resource||''))result=await readWizardData(getDatabase(),staff,resource!,url.searchParams.get('search')||'');
  else throw new Response('Read endpoint unavailable',{status:404});
- return Response.json(result,{headers:{'Cache-Control':'no-store'}});
+ return Response.json(resource==='manage-vehicle-categories'?{categories:result}:result,{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)return Response.json({error:await error.text()},{status:error.status,headers:{'Cache-Control':'no-store'}});throw authUnavailable(error);}
 }
 export async function action({request}:ActionFunctionArgs){

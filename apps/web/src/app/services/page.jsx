@@ -129,7 +129,7 @@ export default function ServicesPage() {
       toast.success("Service deleted");
       setDeletingService(null);
       setDeleteError(null);
-      queryClient.invalidateQueries(["services"]);
+      queryClient.invalidateQueries({queryKey: ["services"]});
     },
     onError: (err) => {
       if (err.status === 409 && err.data?.canForce) {
@@ -355,10 +355,10 @@ export default function ServicesPage() {
                       force: true,
                     })
                   }
-                  disabled={deleteMutation.isLoading}
+                  disabled={deleteMutation.isPending}
                   className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
-                  {deleteMutation.isLoading ? "Deleting..." : "Force Delete"}
+                  {deleteMutation.isPending ? "Deleting..." : "Force Delete"}
                 </button>
               ) : (
                 <button
@@ -368,10 +368,10 @@ export default function ServicesPage() {
                       force: false,
                     })
                   }
-                  disabled={deleteMutation.isLoading}
+                  disabled={deleteMutation.isPending}
                   className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
-                  {deleteMutation.isLoading ? "Deleting..." : "Delete"}
+                  {deleteMutation.isPending ? "Deleting..." : "Delete"}
                 </button>
               )}
             </div>
@@ -389,7 +389,7 @@ export default function ServicesPage() {
           onSuccess={() => {
             setIsModalOpen(false);
             setEditingService(null);
-            queryClient.invalidateQueries(["services"]);
+            queryClient.invalidateQueries({queryKey: ["services"]});
           }}
         />
       )}
@@ -402,7 +402,7 @@ function ServiceModal({ service, onClose, onSuccess }) {
     name: service?.name || "",
     description: service?.description || "",
     default_price: service?.default_price || 0,
-    duration_minutes: service?.duration_minutes || 75,
+    duration_minutes: service?.duration_minutes ?? 75,
     is_variable_price: service?.is_variable_price || false,
     display_order: service?.display_order || 0,
     is_active: service?.is_active ?? true,
@@ -419,10 +419,11 @@ function ServiceModal({ service, onClose, onSuccess }) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({...data,default_price:Number(data.default_price),duration_minutes:Number(data.duration_minutes),display_order:Number(data.display_order)}),
       });
       return res.json();
     },
+    onError: (error) => toast.error(error.message),
     onSuccess: () => {
       toast.success(service ? "Service updated" : "Service added");
       onSuccess();
@@ -662,10 +663,10 @@ function ServiceModal({ service, onClose, onSuccess }) {
           </button>
           <button
             onClick={() => mutation.mutate(formData)}
-            disabled={mutation.isLoading || !formData.name}
+            disabled={mutation.isPending || !formData.name}
             className="px-6 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {mutation.isLoading
+            {mutation.isPending
               ? "Saving..."
               : service
                 ? "Update Service"

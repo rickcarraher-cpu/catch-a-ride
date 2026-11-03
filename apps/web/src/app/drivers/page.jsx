@@ -86,8 +86,8 @@ export default function DriversPage() {
       }
 
       // Success - invalidate queries to refresh the list
-      queryClient.invalidateQueries(["employees"]);
-      queryClient.refetchQueries(["employees"]);
+      queryClient.invalidateQueries({queryKey: ["employees"]});
+      queryClient.refetchQueries({queryKey: ["employees"]});
     } catch (error) {
       console.error("Failed to delete driver:", error);
       alert("Failed to delete driver. Please try again.");
@@ -115,8 +115,8 @@ export default function DriversPage() {
         return;
       }
 
-      queryClient.invalidateQueries(["employees"]);
-      queryClient.refetchQueries(["employees"]);
+      queryClient.invalidateQueries({queryKey: ["employees"]});
+      queryClient.refetchQueries({queryKey: ["employees"]});
     } catch (error) {
       console.error(`Failed to ${action} driver:`, error);
       alert(`Failed to ${action} driver. Please try again.`);
@@ -158,9 +158,9 @@ export default function DriversPage() {
           onSuccess={() => {
             setIsModalOpen(false);
             setEditingDriver(null);
-            queryClient.invalidateQueries(["employees"]);
-            queryClient.invalidateQueries(["vehicles"]);
-            queryClient.refetchQueries(["employees"]);
+            queryClient.invalidateQueries({queryKey: ["employees"]});
+            queryClient.invalidateQueries({queryKey: ["vehicles"]});
+            queryClient.refetchQueries({queryKey: ["employees"]});
           }}
         />
       )}

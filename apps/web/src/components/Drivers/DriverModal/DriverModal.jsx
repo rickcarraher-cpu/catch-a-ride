@@ -91,15 +91,10 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
       const url = driver ? `/api/employees/${driver.id}` : "/api/employees";
       const method = driver ? "PATCH" : "POST";
 
-      // Prepare data - include password fields
-      const payload = { ...data };
-
-      // Remove the masked password value - it's just a display indicator, not a real value
-      delete payload.password;
-
-      // Only include new_password if it was actually set
-      if (!payload.new_password || payload.new_password.trim() === "") {
-        delete payload.new_password;
+      // This protected test adapter never changes roles or credentials.
+      const { password, new_password, is_admin, force_password_reset, id, ...payload } = data;
+      for (const key of ['salary_rate','hourly_rate','rotation_order']) {
+        if (payload[key] !== undefined) payload[key] = payload[key] === '' || payload[key] === null ? null : Number(payload[key]);
       }
 
       const res = await fetch(url, {
@@ -109,6 +104,7 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
       });
       return res.json();
     },
+    onError: (error) => toast.error(error.message),
     onSuccess: () => {
       toast.success(driver ? "Driver updated" : "Driver added");
       onSuccess();
@@ -139,18 +135,18 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
           />
 
           {/* Profile Image Upload */}
-          <ProfileImageUpload
+          <fieldset disabled title="Image upload provider not connected"><ProfileImageUpload
             value={formData.profile_image_url}
             onChange={(url) =>
               setFormData({ ...formData, profile_image_url: url })
             }
-          />
+          /></fieldset>
 
           {/* Build Portrait Button - only show when editing a driver */}
           {driver && (
             <button
               type="button"
-              onClick={() => setShowPortraitBuilder(true)}
+              disabled title="Portrait image provider is not connected" onClick={() => setShowPortraitBuilder(true)}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-sm"
             >
               <ImageIcon size={18} />
@@ -162,7 +158,7 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
           {driver && <VehiclesSection driver={driver} />}
 
           {/* Blocked Times section (edit mode only) */}
-          {driver && <BlockedTimesSection driver={driver} />}
+          {driver && <fieldset disabled title="Blocked-time edits not connected yet"><BlockedTimesSection driver={driver} /></fieldset>}
         </div>
 
         <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 shrink-0">
@@ -214,8 +210,8 @@ export function DriverModal({ driver, allDrivers, onClose, onSuccess }) {
               if (!res.ok)
                 throw new Error("Failed to update vehicle assignment portrait");
               toast.success("Portrait card saved to vehicle profile!");
-              queryClient.invalidateQueries(["vehicle-assignments"]);
-              queryClient.invalidateQueries(["employees"]);
+              queryClient.invalidateQueries({queryKey: ["vehicle-assignments"]});
+              queryClient.invalidateQueries({queryKey: ["employees"]});
               setShowPortraitBuilder(false);
             } catch (err) {
               console.error("Error updating portrait:", err);

@@ -74,15 +74,15 @@ export function VehiclesSection({ driver }) {
       toast.success("Vehicle assigned");
       setShowAssignExisting(false);
       refetchVehicles();
-      queryClient.invalidateQueries(["all-vehicles-list"]);
-      queryClient.invalidateQueries(["vehicles"]);
+      queryClient.invalidateQueries({queryKey: ["all-vehicles-list"]});
+      queryClient.invalidateQueries({queryKey: ["vehicles"]});
     },
     onError: (err) => toast.error(err.message),
   });
 
   const addVehicleMutation = useMutation({
     mutationFn: async () => {
-      const payload = { ...vehicleForm };
+      const payload = { ...vehicleForm, employee_id: driver.id, assigned_driver_ids: [driver.id] };
       if (payload.passenger_capacity) {
         payload.passenger_capacity =
           parseInt(payload.passenger_capacity) || null;
@@ -100,21 +100,6 @@ export function VehiclesSection({ driver }) {
         throw new Error(data.error || "Failed to add vehicle");
       }
       const newVehicle = await res.json();
-      // Then assign it to this driver
-      const assignRes = await fetch("/api/vehicle-assignments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicle_id: newVehicle.id,
-          employee_id: driver.id,
-        }),
-      });
-      if (!assignRes.ok) {
-        const assignData = await assignRes.json();
-        throw new Error(
-          assignData.error || "Vehicle created but failed to assign",
-        );
-      }
       return newVehicle;
     },
     onSuccess: () => {
@@ -129,8 +114,8 @@ export function VehiclesSection({ driver }) {
       });
       setShowAddVehicle(false);
       refetchVehicles();
-      queryClient.invalidateQueries(["all-vehicles-list"]);
-      queryClient.invalidateQueries(["vehicles"]);
+      queryClient.invalidateQueries({queryKey: ["all-vehicles-list"]});
+      queryClient.invalidateQueries({queryKey: ["vehicles"]});
     },
     onError: (err) => toast.error(err.message),
   });
@@ -149,8 +134,8 @@ export function VehiclesSection({ driver }) {
     onSuccess: () => {
       toast.success("Vehicle removed from driver");
       refetchVehicles();
-      queryClient.invalidateQueries(["all-vehicles-list"]);
-      queryClient.invalidateQueries(["vehicles"]);
+      queryClient.invalidateQueries({queryKey: ["all-vehicles-list"]});
+      queryClient.invalidateQueries({queryKey: ["vehicles"]});
     },
     onError: (err) => toast.error(err.message),
   });

@@ -56,7 +56,7 @@ export default function VehiclesPage() {
       if (!res.ok) throw new Error("Failed to delete vehicle");
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["vehicles"]);
+      queryClient.invalidateQueries({queryKey: ["vehicles"]});
       toast.success("Vehicle removed");
     },
     onError: (err) => toast.error(err.message),
@@ -359,7 +359,7 @@ export default function VehiclesPage() {
           onSuccess={() => {
             setIsModalOpen(false);
             setEditingVehicle(null);
-            queryClient.invalidateQueries(["vehicles"]);
+            queryClient.invalidateQueries({queryKey: ["vehicles"]});
           }}
         />
       )}
@@ -427,7 +427,8 @@ function VehicleModal({ vehicle, drivers, onClose, onSuccess }) {
       const method = vehicle ? "PATCH" : "POST";
       const payload = {
         ...data,
-        employee_id: data.employee_id || null,
+        employee_id: selectedDriverIds.has(Number(data.employee_id)) ? Number(data.employee_id) : ([...selectedDriverIds][0] || null),
+        assigned_driver_ids: [...selectedDriverIds].map(Number),
         passenger_capacity: data.passenger_capacity
           ? parseInt(data.passenger_capacity)
           : null,
@@ -442,43 +443,6 @@ function VehicleModal({ vehicle, drivers, onClose, onSuccess }) {
         throw new Error(errData.error || "Failed to save vehicle");
       }
       const saved = await res.json();
-      const vehicleId = saved.id || vehicle?.id;
-
-      // Sync driver assignments
-      // Get current assignments
-      const existingRes = await fetch(
-        `/api/vehicle-assignments?vehicle_id=${vehicleId}`,
-      );
-      const existingAssignments = existingRes.ok
-        ? await existingRes.json()
-        : [];
-      const existingIds = new Set(
-        existingAssignments.map((a) => a.employee_id),
-      );
-
-      const toAdd = [...selectedDriverIds].filter((id) => !existingIds.has(id));
-      const toRemove = [...existingIds].filter(
-        (id) => !selectedDriverIds.has(id),
-      );
-
-      await Promise.all([
-        ...toAdd.map((empId) =>
-          fetch("/api/vehicle-assignments", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ vehicle_id: vehicleId, employee_id: empId }),
-          }),
-        ),
-        ...toRemove.map((empId) =>
-          fetch(
-            `/api/vehicle-assignments?vehicle_id=${vehicleId}&employee_id=${empId}`,
-            {
-              method: "DELETE",
-            },
-          ),
-        ),
-      ]);
-
       return saved;
     },
     onSuccess: () => {

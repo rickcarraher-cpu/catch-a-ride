@@ -120,7 +120,7 @@ export default function PassengersPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries(["clients"]);
+      queryClient.invalidateQueries({queryKey: ["clients"]});
       toast.success(
         data.is_active ? "Passenger activated" : "Passenger inactivated",
       );
@@ -361,8 +361,8 @@ export default function PassengersPage() {
             setEditingClient(null);
           }}
           onSuccess={(createdClient) => {
-            queryClient.invalidateQueries(["clients"]);
-            queryClient.refetchQueries(["clients"]);
+            queryClient.invalidateQueries({queryKey: ["clients"]});
+            queryClient.refetchQueries({queryKey: ["clients"]});
 
             // If this was a new passenger (not editing), show booking prompt
             if (!editingClient && createdClient) {
@@ -525,17 +525,17 @@ function SmsModal({ recipient, onClose }) {
         <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
           <button
             onClick={onClose}
-            disabled={mutation.isLoading}
+            disabled={mutation.isPending}
             className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSend}
-            disabled={mutation.isLoading || !message.trim() || isOverLimit}
+            disabled={mutation.isPending || !message.trim() || isOverLimit}
             className="px-6 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
           >
-            {mutation.isLoading ? (
+            {mutation.isPending ? (
               <>Sending...</>
             ) : (
               <>
@@ -685,7 +685,7 @@ function PassengerModal({ client, onClose, onSuccess }) {
   }
 
   const isSaveDisabled =
-    mutation.isLoading || !formData.name || needsPhone || needsEmail;
+    mutation.isPending || !formData.name || needsPhone || needsEmail;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -914,7 +914,7 @@ function PassengerModal({ client, onClose, onSuccess }) {
             disabled={isSaveDisabled}
             className="px-6 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {mutation.isLoading
+            {mutation.isPending
               ? "Saving..."
               : client
                 ? "Update Passenger"
@@ -951,17 +951,17 @@ function PassengerModal({ client, onClose, onSuccess }) {
             <div className="p-6 border-t border-gray-200 bg-gray-50 grid grid-cols-2 gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteMutation.isLoading}
+                disabled={deleteMutation.isPending}
                 className="px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-lg transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteMutation.mutate()}
-                disabled={deleteMutation.isLoading}
+                disabled={deleteMutation.isPending}
                 className="px-4 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
               >
-                {deleteMutation.isLoading ? (
+                {deleteMutation.isPending ? (
                   "Deleting..."
                 ) : (
                   <>

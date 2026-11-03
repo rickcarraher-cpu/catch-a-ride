@@ -83,3 +83,25 @@ by this batch. Dedicated transport rejects mutations and unknown reads; no simul
 is presented as saved. Hosted imported schemas/UI still unverified; query-boundary
 regression passes but is not database/browser acceptance. No provider calls or
 production changes; temporary review expiry November 3 12:23 UTC unchanged.
+
+
+## Schema-backed management saves — November 3
+
+Owner supplied complete 64-table structural report. Local management regression
+schema now uses reported column types/nullability, primary keys and relevant foreign
+keys; only ID sequence defaults modeled, not business default values.
+Original Drivers/Passengers/Services create and edit now have allowlisted tenant
+writes. No password/admin/dispatcher changes; staff-email takeover is rejected.
+Vehicles create/update with driver ownership and junction assignments in one
+transaction; surviving assignment profiles preserved. Unowned/shared-across-tenant
+vehicles rejected, not guessed as tenant 1. Original form cache invalidation and
+error reporting corrected; test transport never claims unsuccessful save success.
+During existing approved window through November 4 00:51 UTC, tenant-1 protected
+management saves enabled. Outside that window real app admin login is required.
+New workflow makes actual TEST DATABASE changes, not browser samples. Hosted
+records are not altered automatically in verification.
+
+Still excluded: hard deletion, credential/role administration, profile upload/image
+provider, embedded blocked-time writes and per-vehicle profile editing. Reports,
+advanced bookings, financial actions, and broad all-functions parity remain
+unfinished. This update must not be described as whole-system acceptance ready.
