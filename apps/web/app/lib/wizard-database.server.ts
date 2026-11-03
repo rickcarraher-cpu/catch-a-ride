@@ -30,6 +30,10 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  for(const key of countFields)if(d[key]!=null&&(!Number.isInteger(Number(d[key]))||Number(d[key])<0||Number(d[key])>100))throw new Response('Invalid baggage count',{status:400});
  if(d.distance_miles!=null&&(!Number.isFinite(Number(d.distance_miles))||Number(d.distance_miles)<0||Number(d.distance_miles)>100000))throw new Response('Invalid distance',{status:400});
  for(const key of ['is_international_flight','needs_receipt','is_tentative'])if(d[key]!=null&&typeof d[key]!=='boolean')throw new Response('Invalid booking flag',{status:400});
+ const inactiveTourDefault=(key:string,value:unknown)=>!d.is_tour&&(
+   (key==='tour_payment_split'&&value==='single')||
+   (['tour_participants','tour_itinerary'].includes(key)&&Array.isArray(value)&&value.length===0)
+ );
  const lines=d.services;
  if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
  let cents=0;const validated=[];
@@ -43,7 +47,7 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  }
  // Do not silently discard populated unsupported passenger/flight/admin fields.
  const supported=new Set([...textFields,...countFields,'distance_miles','is_international_flight','needs_receipt','is_tentative','client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','destination','payment_method','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
- for(const [key,value] of Object.entries(d))if(!supported.has(key)&&value!==null&&value!==undefined&&value!==false&&value!==''&&value!==0&&!(['_addon_legs','_addon_prices','_addon_quantities'].includes(key)&&typeof value==='object'&&Object.keys(value).length===0))throw new Response(`Field ${key} is not connected yet`,{status:400});
+ for(const [key,value] of Object.entries(d))if(!supported.has(key)&&!inactiveTourDefault(key,value)&&value!==null&&value!==undefined&&value!==false&&value!==''&&value!==0&&!(['_addon_legs','_addon_prices','_addon_quantities'].includes(key)&&typeof value==='object'&&Object.keys(value).length===0))throw new Response(`Field ${key} is not connected yet`,{status:400});
  const addr=(prefix:string)=>d[`${prefix}_address`]||['street','city','state','zip'].map(k=>d[`${prefix}_${k}`]).filter(Boolean).join(', ');
  const record=await createDatabaseBooking(db,staff,{client_id:Number(d.client_id),employee_id:d.employee_id?Number(d.employee_id):null,start_time:d.start_time,pickup_address:addr('pickup'),dropoff_address:addr('dropoff'),notes:d.notes||'',num_people:d.num_people||1,vehicle_category:d.vehicle_category||''});
  for(const line of validated)await db.query(`INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity) VALUES($1,$2,$3,$4,$5)`,[record.id,line.id,line.price,line.duration,line.quantity]);
