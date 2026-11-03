@@ -94,13 +94,13 @@ export async function sampleFetch(input: string, init?: RequestInit) {
     if(url.pathname==='/api/clients'&&method==='POST')resource='passenger';
     else if(url.pathname==='/api/appointments'&&method==='POST')resource='wizard-booking';
     else if(url.pathname==='/api/appointments/lookup'&&method==='POST')resource='lookup';
-    else if(method==='GET')resource=({'/api/settings':'settings','/api/vehicles':'vehicles','/api/clients':'clients'} as Record<string,string>)[url.pathname]||'';
+    else if(method==='GET')resource=({'/api/settings':'settings','/api/vehicles':'vehicles','/api/clients':'clients','/api/vehicle-assignments':'vehicle-assignments'} as Record<string,string>)[url.pathname]||'';
     if(url.pathname==='/api/vehicles/categories'&&method==='GET'){
       const r=await fetch('/preview/database-api?resource=vehicles',{credentials:'same-origin'});if(!r.ok)return r;
       const vehicles=await r.json();return Response.json({categories:[...new Set(vehicles.map((v:{category:string})=>v.category).filter(Boolean))]});
     }
     if(!resource)return Response.json({error:'This operation is not connected to the test database yet'},{status:501});
-    return fetch(`/preview/database-api?resource=${resource}&search=${encodeURIComponent(url.searchParams.get('search')||'')}`,{...init,credentials:'same-origin'});
+    return fetch(`/preview/database-api?resource=${resource}&search=${encodeURIComponent(url.searchParams.get('employee_id')||url.searchParams.get('search')||'')}`,{...init,credentials:'same-origin'});
   }
   if (typeof window === 'undefined' || window.location.pathname !== '/preview/book') throw new Error('Original wizard samples are only available on the isolated booking preview.');
   return createSampleFetch(window.localStorage)(input, init);

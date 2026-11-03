@@ -17,7 +17,7 @@ export async function loader({request}:LoaderFunctionArgs){
  let result;
  if(resource==='timeline')result=await readStaffTimeline(getDatabase(),staff,url.searchParams.get('date')||'');
  else if(resource==='settings')result=(await readStaffDashboard(getDatabase(),staff,1)).settings;
- else if(['services','drivers','clients','vehicles'].includes(resource||''))result=await readWizardData(getDatabase(),staff,resource!,url.searchParams.get('search')||'');
+ else if(['services','drivers','clients','vehicles','vehicle-assignments'].includes(resource||''))result=await readWizardData(getDatabase(),staff,resource!,url.searchParams.get('search')||'');
  else throw new Response('Read endpoint unavailable',{status:404});
  return Response.json(result,{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)return Response.json({error:await error.text()},{status:error.status,headers:{'Cache-Control':'no-store'}});throw authUnavailable(error);}

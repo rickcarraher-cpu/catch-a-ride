@@ -249,3 +249,20 @@ then saves full ordinary booking/service lines, then retrieves the passenger thr
 tenant-bound join. Hosted/browser save still unverified. Same exact branch/expiry
 (03:14 UTC November 3) and Vercel gate; new passenger resource explicitly added only
 to the bounded capability. No production changes or real notifications.
+
+## Specific vehicle booking support
+
+Database wizard driver-vehicle lookup is now mapped to selected-field server reads.
+A specific vehicle save must exist in tenant-bound vehicle reads and, when driver
+selected, belong to that driver's ownership/assignment relationship. Cross-tenant
+vehicle relationships reject. Chosen vehicle_id persists in booking transaction.
+No vehicle-creation/edit/delete endpoint is enabled. Isolated integration test covers
+new passenger, full ordinary payload, specific vehicle/service-line save and joined
+retrieval; invalid foreign-tenant vehicle rejects. Hosted vehicle choice not verified.
+
+Owner reported hosted booking success November 3 around 03:12 UTC; request logs show
+two 201 API responses followed by 200 database-dashboard GET, consistent with passenger
+and booking creation. Specific saved values/refresh persistence not independently
+inspected. Original temporary booking capability expires 03:14 UTC unchanged; no
+password-free extension performed. Remaining hosted verification requires authorized
+app sign-in or a separately approved bounded review window. Production unchanged.
