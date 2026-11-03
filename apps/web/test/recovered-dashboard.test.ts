@@ -58,3 +58,8 @@ test('daily and print schedule dashboard links use actual protected database rou
  assert.equal(databaseDashboardLink('/schedule'),'/preview/daily-schedule');
  assert.equal(databaseDashboardLink('/print-schedule'),'/preview/print-schedule');
 });
+
+test('both original calendars are real test-database destinations',()=>{
+ assert.equal(databaseDashboardLink('/calendar'),'/preview/calendar');
+ assert.equal(databaseDashboardLink('/calendar-glance'),'/preview/calendar-glance');
+});

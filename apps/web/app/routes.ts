@@ -10,6 +10,8 @@ export default [
   route("preview/database", "preview/database.tsx"),
   route("preview/database-edit", "preview/database-edit.tsx"),
   route("preview/database-messages", "preview/database-messages.tsx"),
+  route("preview/calendar", "preview/calendars.tsx", {id:"database-calendar"}),
+  route("preview/calendar-glance", "preview/calendars.tsx", {id:"database-calendar-glance"}),
   route("preview/schedule-api", "preview/schedule-api.ts"),
   route("preview/daily-schedule", "preview/schedules.tsx", {id:"database-daily-schedule"}),
   route("preview/print-schedule", "preview/schedules.tsx", {id:"database-print-schedule"}),

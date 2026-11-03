@@ -32,3 +32,15 @@ test('oversized day fails rather than presenting incomplete print output',async(
  const db={query:async()=>({rows:Array.from({length:501},(_,id)=>({id}))})} as unknown as Pick<Pool,'query'>;
  await assert.rejects(readDailySchedule(db,staff,'2026-11-01'),e=>e instanceof Response&&e.status===422);
 });
+
+import {readCalendarMonth} from '../app/lib/schedule-read.server';
+test('month counts use Central boundaries, exclude cancelled/tentative/foreign rows and reject overflow',async()=>{
+ const pg=new PGlite();const db={query:(sql:string,args?:unknown[])=>pg.query(sql,args)} as unknown as Pick<Pool,'query'>;
+ try{await pg.exec(readFileSync(new URL('./fixtures/schedule-schema.sql',import.meta.url),'utf8'));
+ const data=[['2026-11-01T04:59:59Z',1,'pending',false],['2026-11-01T05:00:00Z',1,'pending',false],['2026-12-01T05:59:59Z',1,'pending',false],['2026-12-01T06:00:00Z',1,'pending',false],['2026-11-15T12:00:00Z',2,'pending',false],['2026-11-15T12:00:00Z',1,'cancelled',false],['2026-11-15T12:00:00Z',1,'pending',true]];
+ for(let i=0;i<data.length;i++)await db.query('INSERT INTO appointments(id,start_time,tenant_id,status,is_tentative) VALUES ($1,$2,$3,$4,$5)',[i+1,...data[i]]);
+ assert.deepEqual((await readCalendarMonth(db,staff,'2026-11')).trips.map(t=>t.id),[2,3]);
+ for(const month of ['2026-13','2026-0','2026-11-01',"2026-11';--"])await assert.rejects(readCalendarMonth(db,staff,month));
+ const tooMany={query:async()=>({rows:Array.from({length:5001},(_,id)=>({id}))})} as unknown as Pick<Pool,'query'>;await assert.rejects(readCalendarMonth(tooMany,staff,'2026-11'),e=>e instanceof Response&&e.status===422);
+ }finally{await pg.close();}
+});

@@ -26,3 +26,16 @@ export async function readDailySchedule(db:Pick<Pool,'query'>,staff:Staff,day:st
  const setting=await db.query("SELECT value FROM settings WHERE tenant_id=$1 AND key='business_name' ORDER BY id DESC LIMIT 1",[staff.tenantId]);
  return {day,trips:trips.rows,drivers:drivers.rows,blockedTimes:blocked.rows,settings:{company_name:setting.rows[0]?.value||'Schedule'}};
 }
+
+export async function readCalendarMonth(db:Pick<Pool,'query'>,staff:Staff,month:string){
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Response('Invalid calendar month',{status:400});
+ validateScheduleDay(month+'-01');
+ const result=await db.query(`SELECT a.id,a.start_time,a.employee_id,a.status,a.is_tentative,a.booking_number
+ FROM appointments a WHERE a.tenant_id=$1
+ AND a.start_time>=($2::date::timestamp AT TIME ZONE 'America/Chicago')
+ AND a.start_time<(($2::date+INTERVAL '1 month')::timestamp AT TIME ZONE 'America/Chicago')
+ AND coalesce(a.status,'') NOT IN ('cancelled','canceled','deleted')
+ AND coalesce(a.is_tentative,false)=false ORDER BY a.start_time,a.id LIMIT 5001`,[staff.tenantId,month+'-01']);
+ if(result.rows.length>5000)throw new Response('More than 5000 trips in this month; calendar counts cannot be shown completely',{status:422});
+ return {trips:result.rows};
+}

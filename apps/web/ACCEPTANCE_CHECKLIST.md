@@ -118,3 +118,16 @@ delete/send actions stay protected. Print SMS/email control disabled and transpo
 rejects all writes. Read caps fail visibly rather than print incomplete schedules.
 No mobile tests per owner's scope. No production changes or access expiry extension.
 Calendars, broader reports and outstanding full-system work remain incomplete.
+
+## Original calendar batch
+24-Hour Calendar Grid and Calendar at a Glance connected to scoped schedule reads.
+Day grid uses Central Time hours and original search/status/driver filters, includes
+inactive drivers with trips, and opens read-only imported trip details. TEST Edit
+opens existing limited editor; payment and deletion remain disabled. Paid filters
+use stored payment_status and detail total uses stored services_total, not a second
+fare sum. Month counts load only selected month (5000 cap, explicit overflow failure),
+exclude cancelled/deleted/tentative and use Central Time month boundaries. Month
+navigation normalizes to day 1 to avoid Jan 31 skipping February; day click opens
+original protected calendar. No external calls or database mutations. Existing
+access expiry unchanged. Tests distinguish month counts/day details from full
+functional parity; financial/advanced/report features remain unfinished.
