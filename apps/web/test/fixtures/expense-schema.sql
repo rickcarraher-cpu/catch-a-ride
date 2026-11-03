@@ -1,0 +1,2 @@
+-- Owner-supplied structure; ID default only.
+CREATE TABLE transactions ("id" serial NOT NULL PRIMARY KEY,"tenant_id" integer,"appointment_id" integer,"category" text NOT NULL,"method" text,"amount" numeric NOT NULL,"tip_amount" numeric,"description" text,"transaction_date" date,"created_at" timestamp with time zone,"employee_id" integer,"cash_deducted_in_payroll" boolean,"payroll_submission_id" integer,"tour_participant_id" integer,"posted_by" text);

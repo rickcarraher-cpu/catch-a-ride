@@ -13,12 +13,16 @@ export function sampleDashboardLink(href: string): string | null {
 }
 
 export function databaseDashboardLink(href:string):string|null {
+ if(href==='/preview/feature?destination=%2Freceipts-needed')return '/preview/receipts-needed';
  if(href.startsWith('/preview/feature?destination='))return href;
  if(['/drivers','/vehicles','/passengers','/services'].includes(href))return '/preview/manage/'+href.slice(1);
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
  if(href==='/book/catch-a-ride')return '/preview/online-book';
  if(['/reports/all-trips','/reports/by-driver','/reports/unpaid-trips'].includes(href))return '/preview'+href;
+ if(href==='/expenses')return '/preview/expenses';
+ if(href==='/five-pm-reminder')return '/preview/five-pm-reminder';
+ if(href==='/receipts-needed')return '/preview/receipts-needed';
  if(href==='/blocked-times')return '/preview/blocked-times';
  if(href==='/dashboard/admin/manage-availability')return '/preview/manage-availability';
  if(href==='/communication-log')return '/preview/communication-log';

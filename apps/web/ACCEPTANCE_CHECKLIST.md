@@ -158,3 +158,18 @@ executed and operational URLs stripped from history; error/metadata blobs exclud
 No resend or send functions activated. Existing protected window unchanged.
 Owner previously deferred trip editor's blocked vehicle changes; still unfinished.
 Not whole-system readiness; recurring/advanced/payment/report work still remains.
+
+## Expense and daily-review batch
+Original Expenses period navigation and Record Expense form connected. Tenant-scoped
+stored expense reads capped at 5000/year; new expense-only records stamped TEST ONLY
+and posted_by TEST PREVIEW EXPENSE. No appointment/payment/payroll fields accepted,
+no processing or imports/financial deletion. Expense categories read from stored
+expense_categories setting or original form defaults; no category write here.
+Original 5 PM report uses shared Central-day schedule data and stored passenger/
+driver confirmation flags; no reminders sent. Receipts Needed uses extracted original
+dashboard modal, date selector and stored needs_receipt flag/amount only. Find Trip
+links to existing list; receipt document creation/sending not implemented. Original
+receipt flag list includes cancelled flagged trips (matches legacy source), excludes
+deleted; date bounded explicitly for DST. No automatic hosted data writes by tests.
+Access expiry unchanged. Special-equipment passenger-note change remains pending
+clarification; no ambiguous request text was copied into passenger profiles.

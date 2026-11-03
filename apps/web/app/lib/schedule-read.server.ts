@@ -6,7 +6,7 @@ export async function readDailySchedule(db:Pick<Pool,'query'>,staff:Staff,day:st
  const trips=await db.query(`SELECT a.id,a.tenant_id,a.client_id,a.employee_id,a.start_time,a.status,a.booking_number,a.is_tentative,a.tentative_reason,
  a.pickup_address,a.dropoff_address,a.pickup_street,a.pickup_city,a.pickup_state,a.pickup_zip,a.dropoff_street,a.dropoff_city,a.dropoff_state,a.dropoff_zip,
  a.destination,a.notes,a.driver_notes,a.num_people,a.num_bags_checked,a.num_bags_carry_on,a.outgoing_flight_info,a.returning_flight_info,a.return_date,
- a.vehicle_id,a.vehicle_category,a.driver_accepted,a.passenger_confirmed,a.payment_method,a.payment_status,a.services_total,a.balance_due,a.payments_total,a.tips_total,
+ a.vehicle_id,a.vehicle_category,a.driver_accepted,a.driver_declined_reason,a.passenger_confirmed,a.payment_method,a.payment_status,a.services_total,a.balance_due,a.payments_total,a.tips_total,
  a.distance_miles,a.distance_method,a.created_at,a.booked_by,a.booker_name,a.display_short_date,a.display_time,a.needs_receipt,
  c.name AS client_name,c.phone AS client_phone,c.email AS client_email,e.name AS employee_name,
  CASE WHEN ve.tenant_id=a.tenant_id AND NOT EXISTS(SELECT 1 FROM vehicle_assignments va LEFT JOIN employees vd ON vd.id=va.employee_id WHERE va.vehicle_id=v.id AND vd.tenant_id IS DISTINCT FROM a.tenant_id) THEN v.name ELSE NULL END AS vehicle_name,

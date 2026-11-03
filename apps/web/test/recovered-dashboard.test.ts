@@ -73,3 +73,8 @@ test('availability and history links use connected protected pages',()=>{
  assert.equal(databaseDashboardLink('/dashboard/admin/manage-availability'),'/preview/manage-availability');
  assert.equal(databaseDashboardLink('/communication-log'),'/preview/communication-log');
 });
+
+test('expense and daily review controls route to real protected screens',()=>{
+ for(const page of ['expenses','five-pm-reminder','receipts-needed'])assert.equal(databaseDashboardLink('/'+page),'/preview/'+page);
+ const html=renderRecoveredDashboard('database');assert.ok(html.includes('href="/preview/receipts-needed"'));
+});

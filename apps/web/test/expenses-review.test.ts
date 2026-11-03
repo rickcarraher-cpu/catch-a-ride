@@ -1,0 +1,17 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {PGlite} from '@electric-sql/pglite';import type {Pool} from 'pg';import {createTestExpense,readExpenses,readExpenseCategories} from '../app/lib/expenses.server';import {readReceiptReview} from '../app/lib/daily-review.server';
+const staff={employeeId:51,tenantId:1,isAdmin:false,isDispatcher:true};
+async function setup(){const pg=new PGlite();for(const name of ['management','schedule','expense'])await pg.exec(readFileSync(new URL(`./fixtures/${name}-schema.sql`,import.meta.url),'utf8'));return {pg,db:{query:(q:string,p?:unknown[])=>pg.query(q,p)} as unknown as Pick<Pool,'query'>};}
+test('expense entries persist only allowed ledger fields; scoped date reads exclude payments and foreign entries',async()=>{const {pg,db}=await setup();try{
+ const body={category:'expense',method:'Fuel',amount:'12.34',description:'fixture',transaction_date:'2026-11-03'};const saved=await createTestExpense(db,staff,body);assert.ok(saved.id);assert.match(saved.description,/^TEST ONLY/);
+ await createTestExpense(db,{...staff,tenantId:2},{...body,amount:'999'});await pg.exec("INSERT INTO transactions(tenant_id,category,amount,transaction_date) VALUES(1,'payment',1000,'2026-11-03');");
+ const rows=await readExpenses(db,staff,'2026-11-01','2026-11-30');assert.equal(rows.length,1);assert.equal(Number(rows[0].amount),12.34);assert.equal(rows[0].posted_by,'TEST PREVIEW EXPENSE');assert.equal((await readExpenses(db,staff,'2026-10-01','2026-10-31')).length,0);
+ for(const bad of [{...body,amount:'-1'},{...body,amount:'0'},{...body,amount:'1.001'},{...body,category:'payment'},{...body,appointment_id:1},{...body,tenant_id:2},{...body,transaction_date:'2026-02-30'}])await assert.rejects(createTestExpense(db,staff,bad));
+ await assert.rejects(readExpenses(db,staff,'2025-01-01','2026-11-30'));assert.equal((await readExpenseCategories(db,staff)).length,0);await pg.exec(`INSERT INTO settings(tenant_id,key,value) VALUES(1,'expense_categories','[{"name":"Fixture Fuel"}]'),(2,'expense_categories','[{"name":"Foreign"}]');`);assert.deepEqual(await readExpenseCategories(db,staff),[{name:'Fixture Fuel'}]);
+ const tx=(await pg.query<{appointment_id:number|null;tip_amount:string}>('SELECT appointment_id,tip_amount FROM transactions WHERE id=$1',[saved.id])).rows[0];assert.equal(tx.appointment_id,null);assert.equal(Number(tx.tip_amount),0);
+ }finally{await pg.close();}});
+test('receipt review uses stored flag, scoped joins and complete Central fall DST day',async()=>{const {pg,db}=await setup();try{
+ await pg.exec("INSERT INTO clients(id,tenant_id,name) VALUES(1,1,'LOCAL'),(2,2,'FOREIGN');");
+ const rows=[[1,1,'2026-11-01T04:59:59Z',true,'pending'],[2,1,'2026-11-01T05:00:00Z',true,'pending'],[3,1,'2026-11-02T05:59:59Z',true,'cancelled'],[4,1,'2026-11-02T06:00:00Z',true,'pending'],[5,2,'2026-11-01T12:00:00Z',true,'pending'],[6,1,'2026-11-01T12:00:00Z',false,'pending'],[7,1,'2026-11-01T12:00:00Z',true,'deleted']];
+ for(const r of rows)await db.query('INSERT INTO appointments(id,tenant_id,start_time,needs_receipt,status,original_amount,client_id) VALUES($1,$2,$3,$4,$5,123.45,1)',r);
+ const result=await readReceiptReview(db,staff,'2026-11-01');assert.deepEqual(result.trips.map(t=>t.id),[2,3]);assert.equal(Number(result.trips[0].original_amount),123.45);assert.equal(result.trips[0].client_name,'LOCAL');assert(!JSON.stringify(result).includes('FOREIGN'));
+ }finally{await pg.close();}});
