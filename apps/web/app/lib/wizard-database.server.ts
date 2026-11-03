@@ -21,7 +21,7 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
  if(d._is_round_trip||d.return_date)throw new Response('Round-trip booking is not connected yet; choose one-way',{status:400});
  if(d.wedding_id)throw new Response('Wedding booking is not connected yet',{status:400});
  if(d.vehicle_id)throw new Response('Specific vehicle assignment is not connected yet; choose No specific vehicle',{status:400});
- if(d.payment_method)throw new Response('Payment method must remain unselected for this limited test',{status:400});
+ if(d.payment_method!=null&&d.payment_method!==''&&!['Cash','Square Invoice','Venmo','Zelle','Farm','Comp','Credit Card','Square','Stripe'].includes(String(d.payment_method)))throw new Response('Unsupported payment preference',{status:400});
  if(d.send_notification===true)throw new Response('Choose Save Without Sending, then No — Save & Go to All Trips',{status:400});
  const lines=d.services;
  if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
@@ -35,11 +35,11 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
   validated.push({id:Number(row.service_id),price:price/100,quantity:Number(row.quantity),duration});
  }
  // Do not silently discard populated unsupported passenger/flight/admin fields.
- const supported=new Set(['client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
+ const supported=new Set(['client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','payment_method','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
  for(const [key,value] of Object.entries(d))if(!supported.has(key)&&value!==null&&value!==undefined&&value!==false&&value!==''&&value!==0&&!(['_addon_legs','_addon_prices','_addon_quantities'].includes(key)&&typeof value==='object'&&Object.keys(value).length===0))throw new Response(`Field ${key} is not connected yet`,{status:400});
  const addr=(prefix:string)=>d[`${prefix}_address`]||['street','city','state','zip'].map(k=>d[`${prefix}_${k}`]).filter(Boolean).join(', ');
  const record=await createDatabaseBooking(db,staff,{client_id:Number(d.client_id),employee_id:d.employee_id?Number(d.employee_id):null,start_time:d.start_time,pickup_address:addr('pickup'),dropoff_address:addr('dropoff'),notes:d.notes||'',num_people:d.num_people||1,vehicle_category:d.vehicle_category||''});
  for(const line of validated)await db.query(`INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity) VALUES($1,$2,$3,$4,$5)`,[record.id,line.id,line.price,line.duration,line.quantity]);
- await db.query(`UPDATE appointments SET services_total=$3,balance_due=$3,booking_number=$4,payment_status='unpaid' WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,cents/100,`TEST-${record.id}`]);
+ await db.query(`UPDATE appointments SET services_total=$3,balance_due=$3,booking_number=$4,payment_status='unpaid',payment_method=$5 WHERE id=$1 AND tenant_id=$2`,[record.id,staff.tenantId,cents/100,`TEST-${record.id}`,d.payment_method||null]);
  return {...record,booking_number:`TEST-${record.id}`};
 }
