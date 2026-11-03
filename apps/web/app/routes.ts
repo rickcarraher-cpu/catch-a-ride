@@ -8,6 +8,7 @@ export default [
   route("account/reset-password", "account/reset-password.tsx"),
   route("dashboard", "dashboard/page.tsx"),
   route("preview/database", "preview/database.tsx"),
+  route("preview/database-book", "preview/database-book.tsx"),
   route("preview/database-api", "preview/database-api.ts"),
   route("preview/database-settings", "preview/database-operations.tsx", {id:"database-settings"}),
   route("preview/database-assignments", "preview/database-operations.tsx", {id:"database-assignments"}),

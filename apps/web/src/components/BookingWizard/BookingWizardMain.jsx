@@ -481,7 +481,7 @@ export function BookingWizardMain({
 
         // Navigate to /trips with the first trip ID to open
         if (tripIds.length > 0) {
-          window.location.href = "/preview/dashboard#sample-trips";
+          window.location.href = window.location.pathname === "/preview/database-book" ? "/preview/database" : "/preview/dashboard#sample-trips";
         } else if (onSuccess) {
           onSuccess();
         }

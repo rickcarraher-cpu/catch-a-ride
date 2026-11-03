@@ -191,3 +191,26 @@ needed. Sending, credential and auth-bypass keys cannot be changed. Original dat
 Settings page forwards POST only for app staff; backend validates independently.
 No automatic database migration or data write was executed against hosted databases.
 Real staff login/end-to-end verification remains deferred at user request.
+
+## Original wizard database connection (limited)
+
+`/preview/database-book` requires a real app staff session, loads tenant-scoped
+services/drivers/vehicles and uses original components. Lexical wizard transport
+maps only explicit API resources; unsupported operations return 501. Existing
+passenger search is limited to 25 matches; no full passenger list is downloaded.
+Vehicle reads require owning employee in tenant and reject cross-tenant assignment
+relationships. No vehicle samples substitute for missing hosted records.
+
+Transactional one-way save validates selected services, quantity/price bounds,
+passenger/driver ownership, writes appointment service lines, and sets summed totals
+and TEST-id booking number. This is fare subtotal only, not complete live pricing:
+no taxes/CC fees, actual payments, tours/weddings/recurring/round-trip support yet.
+Populated unsupported fields fail closed, not silently lost. New passenger creation,
+client updates and clone-trip reads remain disconnected; choose an existing passenger.
+Save Without Sending and no payment method/specific vehicle are required. The known
+empty vehicles table blocks the original mandatory vehicle-category step until real
+test vehicle records are safely supplied. No app-auth bypass is extended.
+
+Isolated PostgreSQL tests exercise service totals/line persistence and rejected
+cross-tenant services; hosted saves and full original wizard flow are unverified.
+Do not call this operational parity or a ready-to-cut-over migration.

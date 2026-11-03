@@ -6,6 +6,7 @@
     "test/staff-reads.test.ts",
     "test/assignment-write.test.ts",
     "test/business-write.test.ts",
+    "test/wizard-database.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",

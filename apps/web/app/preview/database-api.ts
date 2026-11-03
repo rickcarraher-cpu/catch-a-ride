@@ -1,3 +1,4 @@
+import {readWizardData,saveWizardBooking} from '../lib/wizard-database.server';
 import type {LoaderFunctionArgs,ActionFunctionArgs} from 'react-router';
 import {saveBusinessSetting,createDatabaseBooking,inBusinessTransaction} from '../lib/business-write.server';
 import {assignDatabaseTrip} from '../lib/assignment-write.server';
@@ -14,6 +15,7 @@ export async function loader({request}:LoaderFunctionArgs){
  let result;
  if(resource==='timeline')result=await readStaffTimeline(getDatabase(),staff,url.searchParams.get('date')||'');
  else if(resource==='settings')result=(await readStaffDashboard(getDatabase(),staff,1)).settings;
+ else if(['services','drivers','clients','vehicles'].includes(resource||''))result=await readWizardData(getDatabase(),staff,resource!,url.searchParams.get('search')||'');
  else throw new Response('Read endpoint unavailable',{status:404});
  return Response.json(result,{headers:{'Cache-Control':'no-store'}});
  }catch(error){if(error instanceof Response)throw error;throw authUnavailable(error);}
@@ -27,11 +29,13 @@ export async function action({request}:ActionFunctionArgs){
  const staff=await resolveStaff(getDatabase(),user);
  const url=new URL(request.url);
  const resource=url.searchParams.get('resource');
- if(!['assignment','settings','booking'].includes(resource||''))throw new Response('Write unavailable',{status:405});
+ if(!['assignment','settings','booking','wizard-booking','lookup'].includes(resource||''))throw new Response('Write unavailable',{status:405});
+ if(resource==='lookup'&&request.method==='POST'){const d=await request.json();const matches=await readWizardData(getDatabase(),staff,'clients',String(d.value||''));return Response.json({found:matches.length>0,client:matches[0]||null,all_matches:matches},{headers:{'Cache-Control':'no-store'}});}
  const raw=url.searchParams.get('id')||'';
  if(resource==='assignment'&&!/^[1-9]\d{0,9}$/.test(raw))throw new Response('Invalid trip',{status:400});
  const text=await request.text();if(text.length>4096)throw new Response('Request too large',{status:413});
  let body;try{body=JSON.parse(text);}catch{throw new Response('Invalid JSON',{status:400});}
+ if(resource==='wizard-booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveWizardBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource==='settings'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveBusinessSetting(db,staff,body)),{headers:{'Cache-Control':'no-store'}});
  if(resource==='booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>createDatabaseBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource!=='assignment'||request.method!=='PATCH')throw new Response('Method not allowed',{status:405});
