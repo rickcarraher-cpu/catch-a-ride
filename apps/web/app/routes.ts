@@ -43,6 +43,7 @@ export default [
   route("preview/print-schedule", "preview/schedules.tsx", {id:"database-print-schedule"}),
   route("preview/management-api", "preview/management-api.ts"),
   route("preview/manage/:section", "preview/management.tsx"),
+  route("preview/deferred", "preview/deferred.tsx"),
   route("preview/feature", "preview/feature.tsx"),
   route("preview/online-book", "preview/online-book.tsx"),
   route("preview/database-book", "preview/database-book.tsx"),

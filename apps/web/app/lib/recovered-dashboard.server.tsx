@@ -13,14 +13,20 @@ export function sampleDashboardLink(href: string): string | null {
 }
 
 export function databaseDashboardLink(href:string):string|null {
- if(href==='/preview/feature?destination=%2Fclose-up')return '/preview/close-up';
+ if(href.startsWith('/preview/feature?destination=')){
+  const original=new URL(href,'https://preview.invalid').searchParams.get('destination');
+  if(!original||original.startsWith('/preview/'))return null;
+  return databaseDashboardLink(original);
+ }
  if(href==='/timesheet-report')return '/preview/timesheet-report';
  if(href==='/weddings-2')return '/preview/weddings-2';
  if(href==='/weddings-2/review')return '/preview/weddings-2-review';
  if(href==='/payments')return '/preview/payments';
  if(href==='/close-up')return '/preview/close-up';
- if(href==='/preview/feature?destination=%2Freceipts-needed')return '/preview/receipts-needed';
- if(href.startsWith('/preview/feature?destination='))return href;
+ if(href==='/export-operational')return '/preview/close-up';
+ if(href==='/trips?new=true&tour=true')return '/preview/deferred?feature=tour-creation';
+ if(href==='/weddings/add-trip'||href==='/unfinished-action')return '/preview/deferred?feature=wedding-trips';
+ if(href==='/import-data')return '/preview/deferred?feature=import';
  if(['/drivers','/vehicles','/passengers','/services'].includes(href))return '/preview/manage/'+href.slice(1);
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
  if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
@@ -59,8 +65,13 @@ export function renderRecoveredDashboard(mode:'sample'|'database'='sample') {
     // Preserve original layout/text, but make all operational controls inert.
     const navigable = mode==='database' ? html.replace(/<button([^>]*)>([\s\S]*?)<\/button>/g, (_match, attrs:string, content:string) => {
       const label = content.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-      const destination = label.includes('Close Up') ? 'close-up' : label.includes('Receipts Needed') ? 'receipts-needed' : 'unfinished-action';
-      return `<a${attrs} href="/preview/feature?destination=%2F${destination}">${content}</a>`;
+      const destination = label.includes('Close Up') ? '/close-up'
+       : label.includes('Receipts Needed') ? '/receipts-needed'
+       : label.includes('Add Trips to Wedding') ? '/weddings/add-trip'
+       : label.toLowerCase().includes('export') ? '/export-operational'
+       : label.toLowerCase().includes('import') ? '/import-data' : null;
+      if(!destination)throw new Error(`Unmapped dashboard button: ${label}`);
+      return `<a${attrs.replace(/\sdisabled(?:="[^"]*")?/g,'')} href="${destination}">${content}</a>`;
     }) : html;
     return navigable
       .replace(/<button\b/g, '<button disabled=""')

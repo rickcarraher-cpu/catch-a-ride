@@ -50,7 +50,7 @@ test('database dashboard cannot route enabled links to sample pages',()=>{
 test('review orders and online booking use real test destinations; unfinished links disclose status',()=>{
  assert.equal(databaseDashboardLink('/trips?status=needs_review'),'/preview/database?status=needs_review#database-trips');
  assert.equal(databaseDashboardLink('/book/catch-a-ride'),'/preview/online-book');
- assert.ok(databaseDashboardLink('/trips?new=true&tour=true')?.startsWith('/preview/feature?'));
+ assert.equal(databaseDashboardLink('/trips?new=true&tour=true'),'/preview/deferred?feature=tour-creation');
  assert.equal(databaseDashboardLink('//outside.example'),null);
 });
 
@@ -103,4 +103,27 @@ test('payroll and both Weddings2 routes reflect resolved owner decisions',()=>{
  assert.equal(databaseDashboardLink('/timesheet-report'),'/preview/timesheet-report');
  assert.equal(databaseDashboardLink('/weddings-2'),'/preview/weddings-2');
  assert.equal(databaseDashboardLink('/weddings-2/review'),'/preview/weddings-2-review');
+});
+
+import {readFileSync} from 'node:fs';
+test('every rendered database dashboard anchor targets a registered route, not generic placeholder/sample',()=>{
+ const routes=readFileSync(new URL('../app/routes.ts',import.meta.url),'utf8');
+ const patterns=[...routes.matchAll(/route\("([^\"]+)"/g)].map(m=>new RegExp('^/'+m[1].split('/').map(x=>x.startsWith(':')?'[^/]+':x).join('/')+'$'));
+ const html=renderRecoveredDashboard('database');let count=0;
+ for(const match of html.matchAll(/href="([^"]*)"/g)){
+  const path=match[1].split(/[?#]/)[0];assert(patterns.some(p=>p.test(path)),`Unregistered dashboard target: ${match[1]}`);
+  assert(!['/preview/feature','/preview/book','/preview/settings','/preview/assignments','/preview/dashboard','/preview/workspace'].includes(path));count++;
+ }
+ assert(count>=40);assert.doesNotMatch(html,/<button\b|aria-disabled="true"|unfinished-action/);
+ assert.match(html,/href="\/preview\/database-messages\?unread=true"/);
+});
+test('obsolete placeholders resolve current known destinations with no recursion/external redirect',()=>{
+ assert.equal(databaseDashboardLink('/preview/feature?destination=%2Fmessages%3Funread%3Dtrue'),'/preview/database-messages?unread=true');
+ assert.equal(databaseDashboardLink('/preview/feature?destination=%2Fprint-schedule'),'/preview/print-schedule');
+ assert.equal(databaseDashboardLink('/preview/feature?destination=%2Fpreview%2Ffeature'),null);
+ assert.equal(databaseDashboardLink('/preview/feature?destination=https%3A%2F%2Fevil.test'),null);
+ assert.equal(databaseDashboardLink('/weddings/add-trip'),'/preview/deferred?feature=wedding-trips');
+});
+test('obsolete sample dashboard now redirects to database dashboard',async()=>{
+ const old=process.env.VERCEL_ENV;process.env.VERCEL_ENV='preview';try{const {loader}=await import('../app/preview/dashboard');const response=loader();assert.equal(response.status,302);assert.equal(response.headers.get('Location'),'/preview/database');}finally{if(old===undefined)delete process.env.VERCEL_ENV;else process.env.VERCEL_ENV=old;}
 });
