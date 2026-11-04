@@ -97,6 +97,9 @@ export function TripsTable({
   onPageChange,
   sampleMode = false,
   databaseReview = false,
+  onDatabaseAssign,
+  onDatabaseDecision,
+  databaseDecisionBusy = false,
 }) {
   const totalCount = trips?.length || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -651,6 +654,8 @@ export function TripsTable({
                         <Pencil size={12} />
                         Edit
                       </button>
+                      {databaseReview && onDatabaseAssign && <button className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={() => onDatabaseAssign(trip)}>Assign Driver</button>}
+                      {databaseReview && onDatabaseDecision && String(trip.booking_number||'').startsWith('TEST-') && trip.status==='needs_review' && <><button disabled={databaseDecisionBusy} className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={()=>onDatabaseDecision(trip.id,'approve')}>Approve</button><button disabled={databaseDecisionBusy} className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={()=>onDatabaseDecision(trip.id,'reject')}>Reject</button></>}
                       {trip.booking_number && (
                         <a
                           href={sampleMode ? undefined : `/booking/${trip.id}`}

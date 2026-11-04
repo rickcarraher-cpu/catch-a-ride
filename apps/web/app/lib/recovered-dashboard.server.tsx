@@ -29,7 +29,7 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/import-data')return '/preview/deferred?feature=import';
  if(['/drivers','/vehicles','/passengers','/services'].includes(href))return '/preview/manage/'+href.slice(1);
  if(href==='/messages'||href==='/messages?unread=true')return '/preview/database-messages'+(href.includes('?')?'?unread=true':'');
- if(href==='/trips?status=needs_review')return '/preview/database?status=needs_review#database-trips';
+ if(href==='/trips?status=needs_review')return '/preview/review-orders';
  if(href==='/book/catch-a-ride')return '/preview/online-book';
  if(['/reports/all-trips','/reports/by-driver','/reports/unpaid-trips','/reports/weekly-payments','/reports/payments-by-method'].includes(href))return '/preview'+href;
  if(href==='/third-party-trips'||href==='/third-party-trips?new=true')return '/preview/advanced/third-party';
@@ -47,7 +47,7 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/calendar-glance')return '/preview/calendar-glance';
  if(href==='/schedule')return '/preview/daily-schedule';
  if(href==='/print-schedule')return '/preview/print-schedule';
- if(href==='/trips')return '/preview/database#database-trips';
+ if(href==='/trips')return '/preview/trips';
  if(href==='/trips?new=true&dispatch=true'||href==='/trips?new=true')return '/preview/database-book';
  if(href==='/settings-2')return '/preview/database-settings';
  if(href==='/schedule-timeline'||href==='/schedule-builder')return '/preview/database-assignments';

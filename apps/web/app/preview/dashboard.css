@@ -19,3 +19,12 @@
 .dashboard-sample-trips h2 { font-size: 24px; font-weight: 700; }
 .dashboard-sample-trips > a { color: #1d4ed8; text-decoration: underline; display: inline-block; margin: 12px 0; }
 .dashboard-sample-trips button { font: inherit; cursor: pointer; border: 0; }
+
+.trip-list-page { max-width: 1440px; margin: 0 auto; padding: 24px; font-family: Arial,sans-serif; }
+.trip-list-page header h1 { font-size: 28px; font-weight: 700; margin: 14px 0; }
+.trip-list-page header a, .trip-list-page nav a { color: #1d4ed8; text-decoration: underline; }
+.trip-list-page header p { margin-bottom: 18px; }
+.trip-list-page form { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.trip-list-page input:not([type=checkbox]) { border: 1px solid #9ca3af; border-radius: 6px; padding: 6px 10px; }
+.trip-list-page form button { padding: 6px 14px; border: 1px solid #9ca3af; border-radius: 6px; }
+.trip-list-page nav { margin-top: 14px; }

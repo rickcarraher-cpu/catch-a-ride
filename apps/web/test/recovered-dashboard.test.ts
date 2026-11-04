@@ -41,14 +41,14 @@ test("only explicitly supported booking links are enabled", () => {
 });
 
 test('database dashboard cannot route enabled links to sample pages',()=>{
- assert.equal(databaseDashboardLink('/trips'),'/preview/database#database-trips');
+ assert.equal(databaseDashboardLink('/trips'),'/preview/trips');
  assert.equal(databaseDashboardLink('/trips?new=true&dispatch=true'),'/preview/database-book');
  assert.equal(databaseDashboardLink('/schedule-timeline'),'/preview/database-assignments');
  const html=renderRecoveredDashboard('database');assert.doesNotMatch(html,/href="\/preview\/(book|settings|assignments)"|#sample-trips/);
 });
 
 test('review orders and online booking use real test destinations; unfinished links disclose status',()=>{
- assert.equal(databaseDashboardLink('/trips?status=needs_review'),'/preview/database?status=needs_review#database-trips');
+ assert.equal(databaseDashboardLink('/trips?status=needs_review'),'/preview/review-orders');
  assert.equal(databaseDashboardLink('/book/catch-a-ride'),'/preview/online-book');
  assert.equal(databaseDashboardLink('/trips?new=true&tour=true'),'/preview/deferred?feature=tour-creation');
  assert.equal(databaseDashboardLink('//outside.example'),null);

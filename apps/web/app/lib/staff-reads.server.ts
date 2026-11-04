@@ -13,7 +13,7 @@ export async function resolveStaff(db: Database, user: SignedInUser | null): Pro
   return { employeeId: row.id, tenantId: row.tenant_id, isAdmin: row.is_admin === true, isDispatcher: row.is_dispatcher === true };
 }
 export const BUSINESS_SETTINGS = ['business_name','business_phone','business_address','business_hours_start','business_hours_end','timezone','rate_per_mile','manual_mileage','booking_message','booking_page_message','provider_label'];
-export async function readStaffDashboard(db: Database, staff: Staff, page: number, search='', testsOnly=false, status='') {
+export async function readStaffDashboard(db: Database, staff: Staff, page: number, search='', testsOnly=false, status='', includeSettings=true) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new Response('Invalid page', { status: 400 });
   if(status!==''&&status!=='needs_review')throw new Response('Invalid status filter',{status:400});
   if(search.length>100)throw new Response('Search too long',{status:400});
@@ -27,7 +27,7 @@ export async function readStaffDashboard(db: Database, staff: Staff, page: numbe
     LEFT JOIN employees e ON e.id = a.employee_id AND e.tenant_id = a.tenant_id
     WHERE a.tenant_id = $1 AND ($3='' OR position(lower($3) in lower(coalesce(a.booking_number,'')))>0 OR position(lower($3) in lower(coalesce(c.name,'')))>0)
     AND ($4::boolean=false OR a.booking_number LIKE 'TEST-%') AND ($5='' OR a.status=$5) ORDER BY a.created_at DESC NULLS LAST,a.id DESC LIMIT 51 OFFSET $2`, [staff.tenantId, offset,search,testsOnly,status]);
-  const settings = await db.query(`SELECT key, value FROM settings WHERE tenant_id = $1 AND key = ANY($2::text[]) ORDER BY key, id`, [staff.tenantId, BUSINESS_SETTINGS]);
+  const settings = includeSettings ? await db.query(`SELECT key, value FROM settings WHERE tenant_id = $1 AND key = ANY($2::text[]) ORDER BY key, id`, [staff.tenantId, BUSINESS_SETTINGS]) : {rows:[]};
   const safe: Record<string, string> = {};
   for (const row of settings.rows) if (BUSINESS_SETTINGS.includes(row.key) && typeof row.value === 'string') safe[row.key] = row.value;
   return { trips: trips.rows.slice(0, 50), hasMore: trips.rows.length > 50, settings: safe, page };

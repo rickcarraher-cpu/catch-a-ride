@@ -39,3 +39,5 @@ test('review orders filter is validated and tenant bound',async()=>{
  await readStaffDashboard(db,staff,1,'',false,'needs_review');assert.equal(calls[0][0],1);assert.equal(calls[0][4],'needs_review');
  await assert.rejects(readStaffDashboard(db,staff,1,'',false,'invalid'));
 });
+
+test('standalone trip lists do not query settings values',async()=>{const calls:string[]=[];const db={query:async(sql:string)=>{calls.push(sql);return {rows:[]};}} as unknown as Pick<Pool,'query'>;const r=await readStaffDashboard(db,{employeeId:51,tenantId:1,isAdmin:true,isDispatcher:true},1,'',false,'',false);assert.equal(calls.length,1);assert.doesNotMatch(calls[0],/FROM settings/);assert.deepEqual(r.settings,{});});

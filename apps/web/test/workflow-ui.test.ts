@@ -15,3 +15,13 @@ test('database table Edit works only for TEST rows and financial/destructive con
  const edit=buttons.find(b=>/>Edit|\sEdit/.test(b[2]));assert.ok(edit);assert.doesNotMatch(edit[1],/disabled/);
  for(const label of ['Pay','Invoice','Delete']){const button=buttons.find(b=>b[2].includes(label));assert.ok(button);assert.match(button[1],/disabled/);}
 });
+
+import {createMemoryRouter,RouterProvider} from 'react-router';
+import {TripListView} from '../app/preview/trip-list-view';
+test('standalone review and trip pages contain only one original table and no diagnostic dumps',()=>{
+ for(const status of ['', 'needs_review']){
+ const data={trips:[{id:1,booking_number:'TEST-1',status:'needs_review',start_time:'2026-11-10T14:50:00Z',client_name:'Test Rider'}],page:2,hasMore:true,search:'Test',testsOnly:true,status,settings:{business_name:'MUST NOT DISPLAY'}};
+ const router=createMemoryRouter([{path:'/',element:createElement(TripListView,{data,onEdit:()=>{},onAssign:()=>{},onDecide:()=>{}})}]);
+ try{const html=renderToStaticMarkup(createElement(RouterProvider,{router}));assert.equal((html.match(/<table\b/g)||[]).length,1);assert.doesNotMatch(html,/<ul\b|Imported business settings|MUST NOT DISPLAY|Customer online booking \(test\)|Database bookings/);assert(html.includes(status?'Review Orders':'All Trips'));assert(html.includes('Assign Driver'));assert.equal(html.includes('>Approve</button>'),!!status);assert(html.includes('Previous page'));assert(html.includes('Next page'));}finally{router.dispose();}
+ }
+});
