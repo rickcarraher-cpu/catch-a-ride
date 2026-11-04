@@ -1,4 +1,4 @@
-export const BOOKING_REVIEW_EXPIRY='2026-11-04T13:12:00Z';
+export const BOOKING_REVIEW_EXPIRY='2026-11-05T13:31:00Z';
 export function bookingReviewEnabled(env:Record<string,string|undefined>=process.env,now=Date.now()){
  return env.VERCEL_ENV==='preview'&&env.VERCEL_GIT_COMMIT_REF==='preview/bounded-booking-review'&&Number.isFinite(now)&&now<Date.parse(BOOKING_REVIEW_EXPIRY);
 }
