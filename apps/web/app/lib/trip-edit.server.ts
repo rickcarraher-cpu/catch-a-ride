@@ -16,7 +16,7 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
  const current=await readEditableTrip(db,staff,id);const d=body as Record<string,unknown>;
  if(!d||typeof d!=='object'||Array.isArray(d))throw new Response('Invalid edit',{status:400});
  if(d.send_notification===true)throw new Response('Choose Save Without Sending',{status:400});
- // Preserve original services/prices/identity/time/assignment. Do not silently lose attempted changes.
+ // Preserve original services/prices/identity unless explicitly supported below. Do not silently lose attempted changes.
  for(const key of ['client_id','status','payment_method'])if(d[key]!=null&&String(d[key])!==String(current[key]??''))throw new Response(`Changing ${key} is not enabled in this metadata editor`,{status:400});
  const scheduleEdits:Record<string,unknown>={};
  let effectiveDriver=current.employee_id??null;
@@ -58,12 +58,31 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
   const available=await readWizardData(db,staff,'vehicles');if(!available.some(v=>v.category===d.vehicle_category))throw new Response('Select an available vehicle category',{status:400});
   vehicleEdits.vehicle_category=d.vehicle_category;
  }
+ const detailEdits:Record<string,unknown>={};
+ const countFields=['num_people','num_bags_checked','num_bags_carry_on','num_car_seats','num_golf_bags'];
+ for(const key of countFields)if(Object.hasOwn(d,key)){
+  const raw=d[key];
+  if(raw===null||raw===''){detailEdits[key]=null;continue;}
+  if(typeof raw!=='number'&&typeof raw!=='string')throw new Response('Invalid passenger/baggage count',{status:400});
+  const value=Number(raw);if(!Number.isSafeInteger(value)||value<0||value>1000)throw new Response('Passenger/baggage count must be a whole number from 0 to 1000',{status:400});
+  detailEdits[key]=value;
+ }
+ if(Object.hasOwn(d,'distance_miles')){
+  const raw=d.distance_miles;
+  if(raw===null||raw==='')detailEdits.distance_miles=null;
+  else {if((typeof raw!=='number'&&typeof raw!=='string')||!Number.isFinite(Number(raw))||Number(raw)<0||Number(raw)>100000)throw new Response('Invalid distance',{status:400});detailEdits.distance_miles=Number(raw);}
+ }
+ if(Object.hasOwn(d,'distance_method')){
+  if(d.distance_method!==null&&(typeof d.distance_method!=='string'||d.distance_method.length>80))throw new Response('Invalid distance method',{status:400});
+  detailEdits.distance_method=d.distance_method||null;
+ }
+ if(Object.hasOwn(d,'is_tentative')){if(typeof d.is_tentative!=='boolean')throw new Response('Invalid tentative status',{status:400});detailEdits.is_tentative=d.is_tentative;}
  const fields=['notes','driver_notes','destination','pickup_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_address','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','booker_name','outgoing_flight_info','returning_flight_info','tentative_reason'] as const;
  for(const [key,value] of Object.entries(d)){
- if((fields as readonly string[]).includes(key)||['services','start_time','send_notification','vehicle_id','vehicle_category','employee_id'].includes(key))continue;
+ if(Object.hasOwn(detailEdits,key)||(fields as readonly string[]).includes(key)||['services','start_time','send_notification','vehicle_id','vehicle_category','employee_id'].includes(key))continue;
  if(String(value??'')!==String(current[key]??''))throw new Response(`Changing ${key} is not enabled in this metadata editor`,{status:400});
  }
- const values:Record<string,unknown>={...scheduleEdits,...vehicleEdits};for(const k of fields)if(Object.hasOwn(d,k)){if(d[k]!=null&&(typeof d[k]!=='string'||String(d[k]).length>2000))throw new Response('Invalid text field',{status:400});values[k]=d[k]||null;}
+ const values:Record<string,unknown>={...scheduleEdits,...vehicleEdits,...detailEdits};for(const k of fields)if(Object.hasOwn(d,k)){if(d[k]!=null&&(typeof d[k]!=='string'||String(d[k]).length>2000))throw new Response('Invalid text field',{status:400});values[k]=d[k]||null;}
  if(!Object.keys(values).length)throw new Response('No supported changes',{status:400});
  const keys=Object.keys(values);await db.query(`UPDATE appointments SET ${keys.map((k,i)=>`${k}=$${i+3}`).join(',')} WHERE id=$1 AND tenant_id=$2 AND booking_number LIKE 'TEST-%'`,[id,staff.tenantId,...Object.values(values)]);
  return {id,saved:true};

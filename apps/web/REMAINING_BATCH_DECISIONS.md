@@ -58,3 +58,6 @@ Original /weddings/add-trip route is referenced by the dashboard but its page
 implementation does not exist in recovered source. This is not restorable wiring:
 need owner decision to defer the original missing feature or specify new behavior.
 Do not assume a new wedding workflow or claim all remaining work is complete.
+
+## Owner deferral November 4
+Owner explicitly deferred Add Trips to Wedding together with unfinished wedding features. No new wedding-trip workflow should be built for migration acceptance. Other integration work continues.

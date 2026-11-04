@@ -34,3 +34,16 @@ test('TEST rescheduling and driver changes preserve totals and clear stale date 
  await run({employee_id:'',vehicle_id:''});assert.equal((await readEditableTrip(db,staff,1)).employee_id,null);
  }finally{await pg.close();}
 });
+
+test('ordinary trip details persist with money and assignment unchanged; invalid numbers never write',async()=>{
+ const pg=new PGlite();const db={query:async(sql:string,args?:unknown[])=>{const r=await pg.query(sql,args);return {...r,rowCount:r.rows.length||r.affectedRows};}} as unknown as Pick<Pool,'query'>;
+ try{for(const f of ['management','schedule'])await pg.exec(readFileSync(new URL(`./fixtures/${f}-schema.sql`,import.meta.url),'utf8'));
+ await pg.exec(`INSERT INTO appointments(id,tenant_id,start_time,booking_number,services_total,balance_due,notes) VALUES(1,1,'2026-11-10T15:00:00Z','TEST-1',169,169,'original');`);
+ const run=async(body:unknown)=>{await pg.exec('BEGIN');try{await updateTestTrip(db,staff,1,body);await pg.exec('COMMIT');}catch(e){await pg.exec('ROLLBACK');throw e;}};
+ await run({num_people:'3',num_bags_checked:2,num_bags_carry_on:1,num_car_seats:1,num_golf_bags:0,distance_miles:'42.5',distance_method:'manual',is_tentative:true,tentative_reason:'Test only'});
+ const t=await readEditableTrip(db,staff,1);assert.equal(t.num_people,3);assert.equal(t.num_car_seats,1);assert.equal(Number(t.distance_miles),42.5);assert.equal(t.is_tentative,true);assert.equal(t.notes,'original');assert.equal(new Date(t.start_time).toISOString(),'2026-11-10T15:00:00.000Z');
+ for(const bad of [{num_people:-1},{num_people:1.5},{num_car_seats:true},{num_golf_bags:1001},{distance_miles:-1},{distance_miles:'NaN'},{distance_method:{}},{is_tentative:'true'},{services_total:5}])await assert.rejects(run(bad));
+ const money=(await pg.query<{services_total:string;balance_due:string}>('SELECT services_total,balance_due FROM appointments WHERE id=1')).rows[0];assert.equal(Number(money.services_total),169);assert.equal(Number(money.balance_due),169);
+ await run({num_car_seats:'',distance_miles:null,is_tentative:false});assert.equal((await readEditableTrip(db,staff,1)).num_car_seats,null);
+ }finally{await pg.close();}
+});
