@@ -522,8 +522,7 @@ function DriverSection({
                 className="text-orange-600 flex-shrink-0"
               />
               <p className="text-xs text-orange-800 font-medium">
-                ⚠ Commission rates are locked (payroll {adminStatus}). Rates can
-                only be edited when admin status is "pending".
+                Commission-rate changes are disabled in this test review. No payroll approval or submission has occurred.
               </p>
             </div>
           )}
