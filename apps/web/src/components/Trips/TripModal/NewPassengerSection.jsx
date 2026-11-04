@@ -1,3 +1,4 @@
+import { editorFetch as fetch } from "../../../../app/preview/editor-fetch";
 import { useState } from "react";
 import { User, Phone, Mail, MapPin, ChevronRight } from "lucide-react";
 import { toast } from "sonner";

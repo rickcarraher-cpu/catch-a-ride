@@ -1,0 +1,3 @@
+import {useQuery} from '@tanstack/react-query';
+export async function fetchDailySchedule(day:string){const response=await fetch('/preview/schedule-api?date='+encodeURIComponent(day),{credentials:'same-origin'});const data=await response.json();if(!response.ok)throw new Error(data.error||'Schedule failed to load');return data;}
+export function useDatabaseSchedule(day:string){const query=useQuery({queryKey:['database-daily-schedule',day],queryFn:()=>fetchDailySchedule(day),retry:false});return {trips:query.data?.trips||[],drivers:query.data?.drivers||[],blockedTimes:query.data?.blockedTimes||[],settings:query.data?.settings||{},clients:[],services:[],transactions:[],isLoading:query.isLoading,tripsError:query.error};}

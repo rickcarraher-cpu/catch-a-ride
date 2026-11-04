@@ -13,8 +13,10 @@ export async function resolveStaff(db: Database, user: SignedInUser | null): Pro
   return { employeeId: row.id, tenantId: row.tenant_id, isAdmin: row.is_admin === true, isDispatcher: row.is_dispatcher === true };
 }
 export const BUSINESS_SETTINGS = ['business_name','business_phone','business_address','business_hours_start','business_hours_end','timezone','rate_per_mile','manual_mileage','booking_message','booking_page_message','provider_label'];
-export async function readStaffDashboard(db: Database, staff: Staff, page: number) {
+export async function readStaffDashboard(db: Database, staff: Staff, page: number, search='', testsOnly=false, status='', includeSettings=true) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 10000) throw new Response('Invalid page', { status: 400 });
+  if(status!==''&&status!=='needs_review')throw new Response('Invalid status filter',{status:400});
+  if(search.length>100)throw new Response('Search too long',{status:400});
   const offset = (page - 1) * 50;
   const trips = await db.query(`SELECT a.id, a.start_time, a.status, a.booking_number,
     a.pickup_address, a.dropoff_address, a.vehicle_category, a.employee_id,
@@ -23,8 +25,9 @@ export async function readStaffDashboard(db: Database, staff: Staff, page: numbe
     FROM appointments a
     LEFT JOIN clients c ON c.id = a.client_id AND c.tenant_id = a.tenant_id
     LEFT JOIN employees e ON e.id = a.employee_id AND e.tenant_id = a.tenant_id
-    WHERE a.tenant_id = $1 ORDER BY a.start_time DESC, a.id DESC LIMIT 51 OFFSET $2`, [staff.tenantId, offset]);
-  const settings = await db.query(`SELECT key, value FROM settings WHERE tenant_id = $1 AND key = ANY($2::text[]) ORDER BY key, id`, [staff.tenantId, BUSINESS_SETTINGS]);
+    WHERE a.tenant_id = $1 AND ($3='' OR position(lower($3) in lower(coalesce(a.booking_number,'')))>0 OR position(lower($3) in lower(coalesce(c.name,'')))>0)
+    AND ($4::boolean=false OR a.booking_number LIKE 'TEST-%') AND ($5='' OR a.status=$5) ORDER BY a.created_at DESC NULLS LAST,a.id DESC LIMIT 51 OFFSET $2`, [staff.tenantId, offset,search,testsOnly,status]);
+  const settings = includeSettings ? await db.query(`SELECT key, value FROM settings WHERE tenant_id = $1 AND key = ANY($2::text[]) ORDER BY key, id`, [staff.tenantId, BUSINESS_SETTINGS]) : {rows:[]};
   const safe: Record<string, string> = {};
   for (const row of settings.rows) if (BUSINESS_SETTINGS.includes(row.key) && typeof row.value === 'string') safe[row.key] = row.value;
   return { trips: trips.rows.slice(0, 50), hasMore: trips.rows.length > 50, settings: safe, page };
@@ -33,7 +36,7 @@ export async function readStaffDashboard(db: Database, staff: Staff, page: numbe
 export async function readStaffTimeline(db: Database, staff: Staff, day: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(Date.parse(`${day}T00:00:00Z`)) || new Date(`${day}T00:00:00Z`).toISOString().slice(0,10)!==day) throw new Response('Invalid date',{status:400});
   const drivers=await db.query(`SELECT id, name, color, is_active FROM employees WHERE tenant_id=$1 AND is_active=true ORDER BY name LIMIT 200`,[staff.tenantId]);
-  const trips=await db.query(`SELECT a.id,a.start_time,a.status,a.booking_number,a.employee_id,a.pickup_address,a.dropoff_address,a.vehicle_category,a.num_people,a.is_tentative,a.tentative_reason,c.name AS client_name,e.name AS employee_name,60 AS duration_minutes
+  const trips=await db.query(`SELECT a.id,a.start_time,a.status,a.booking_number,a.employee_id,a.pickup_address,a.dropoff_address,a.vehicle_category,a.num_people,a.is_tentative,a.tentative_reason,c.name AS client_name,e.name AS employee_name,COALESCE((SELECT sum(x.duration_minutes * coalesce(x.quantity,1)) FROM appointment_services x JOIN services s ON s.id=x.service_id AND s.tenant_id=a.tenant_id WHERE x.appointment_id=a.id),60) AS duration_minutes,NOT EXISTS(SELECT 1 FROM appointment_services x JOIN services s ON s.id=x.service_id AND s.tenant_id=a.tenant_id WHERE x.appointment_id=a.id) AS duration_estimated
     FROM appointments a LEFT JOIN clients c ON c.id=a.client_id AND c.tenant_id=a.tenant_id
     LEFT JOIN employees e ON e.id=a.employee_id AND e.tenant_id=a.tenant_id
     WHERE a.tenant_id=$1 AND a.start_time >= ($2::date::timestamp AT TIME ZONE 'America/Chicago')

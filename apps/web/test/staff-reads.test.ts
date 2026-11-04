@@ -32,3 +32,12 @@ test('database timeline scopes tenant and Chicago date, rejects bad dates and ex
  assert.match(calls[1].sql,/America\/Chicago/);assert.equal(calls[1].args[1],'2026-11-02');
  await assert.rejects(readStaffTimeline(db,staff,'2026-02-31'));
 });
+
+test('review orders filter is validated and tenant bound',async()=>{
+ const calls:unknown[][]=[];const db={query:async(sql:string,args:unknown[])=>{calls.push(args);return {rows:[]};}} as unknown as Pick<Pool,'query'>;
+ const staff={employeeId:51,tenantId:1,isAdmin:true,isDispatcher:true};
+ await readStaffDashboard(db,staff,1,'',false,'needs_review');assert.equal(calls[0][0],1);assert.equal(calls[0][4],'needs_review');
+ await assert.rejects(readStaffDashboard(db,staff,1,'',false,'invalid'));
+});
+
+test('standalone trip lists do not query settings values',async()=>{const calls:string[]=[];const db={query:async(sql:string)=>{calls.push(sql);return {rows:[]};}} as unknown as Pick<Pool,'query'>;const r=await readStaffDashboard(db,{employeeId:51,tenantId:1,isAdmin:true,isDispatcher:true},1,'',false,'',false);assert.equal(calls.length,1);assert.doesNotMatch(calls[0],/FROM settings/);assert.deepEqual(r.settings,{});});

@@ -96,6 +96,10 @@ export function TripsTable({
   pageSize = 50,
   onPageChange,
   sampleMode = false,
+  databaseReview = false,
+  onDatabaseAssign,
+  onDatabaseDecision,
+  databaseDecisionBusy = false,
 }) {
   const totalCount = trips?.length || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -643,12 +647,15 @@ export function TripsTable({
                   <td className="px-3 py-1.5">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <button
+                        disabled={databaseReview && !String(trip.booking_number || "").startsWith("TEST-")}
                         onClick={() => onEdit(trip.id)}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
                       >
                         <Pencil size={12} />
                         Edit
                       </button>
+                      {databaseReview && onDatabaseAssign && <button className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={() => onDatabaseAssign(trip)}>Assign Driver</button>}
+                      {databaseReview && onDatabaseDecision && String(trip.booking_number||'').startsWith('TEST-') && trip.status==='needs_review' && <><button disabled={databaseDecisionBusy} className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={()=>onDatabaseDecision(trip.id,'approve')}>Approve</button><button disabled={databaseDecisionBusy} className="px-2 py-1 text-xs font-semibold rounded-lg border" onClick={()=>onDatabaseDecision(trip.id,'reject')}>Reject</button></>}
                       {trip.booking_number && (
                         <a
                           href={sampleMode ? undefined : `/booking/${trip.id}`}
@@ -676,6 +683,7 @@ export function TripsTable({
                         </>
                       ) : (
                         <button
+                          disabled={databaseReview}
                           onClick={() => onPay(trip.id)}
                           className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-colors"
                         >
@@ -695,6 +703,7 @@ export function TripsTable({
                         Receipt
                       </a>
                       <button
+                        disabled={databaseReview}
                         onClick={() => onInvoice(trip.id)}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-purple-200 hover:text-purple-700 transition-colors"
                       >
@@ -702,6 +711,7 @@ export function TripsTable({
                         Invoice
                       </button>
                       <button
+                        disabled={databaseReview}
                         onClick={() => onDelete(trip)}
                         className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors"
                       >

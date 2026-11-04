@@ -55,7 +55,12 @@ test("missing, forged and tampered cookies cannot open a session", async () => {
   assert.equal(result.kind, "success");
   if (result.kind !== "success") return;
   const cookie = result.cookie.split(";")[0];
-  assert.equal(await auth.getUser(request(cookie.slice(0, -1) + "x")), null);
+  // Mutate an actual encoded-value byte; replacing the final character with x
+  // sometimes left an already-x cookie unchanged and caused a false failure.
+  const index = cookie.indexOf("=") + 1;
+  const tampered = cookie.slice(0, index) + (cookie[index] === "A" ? "B" : "A") + cookie.slice(index + 1);
+  assert.notEqual(tampered, cookie);
+  assert.equal(await auth.getUser(request(tampered)), null);
   const otherSecret = createAuth(driver, "a-different-signing-secret-with-at-least-32-characters", true);
   assert.equal(await otherSecret.getUser(request(cookie)), null);
 });

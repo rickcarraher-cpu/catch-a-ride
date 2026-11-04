@@ -1,0 +1,9 @@
+import type {Pool} from 'pg';import type {Staff} from './staff-reads.server';
+// Stored historical messages may contain live confirmation/payment links or HTML.
+export function safeHistoryText(value:unknown){return String(value??'').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'[script removed]').replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<[^>]+>/g,' ').replace(/https?:\/\/[^\s<>"']+/gi,'[link removed in test history]').slice(0,12000);}
+export async function readCommunicationHistory(db:Pick<Pool,'query'>,staff:Staff,kind:string,page:number){
+ if(!Number.isSafeInteger(page)||page<1||page>10000)throw new Response('Invalid history page',{status:400});const offset=(page-1)*100;
+ if(kind==='email'){const r=await db.query(`SELECT l.id,l.appointment_id,l.recipient_email,l.recipient_name,l.subject,l.body,l.sent_at,l.status,l.email_type,a.booking_number FROM email_logs l LEFT JOIN appointments a ON a.id=l.appointment_id AND a.tenant_id=l.tenant_id WHERE l.tenant_id=$1 ORDER BY l.sent_at DESC NULLS LAST,l.id DESC LIMIT 101 OFFSET $2`,[staff.tenantId,offset]);return {emails:r.rows.slice(0,100).map(r=>({...r,subject:safeHistoryText(r.subject),body:safeHistoryText(r.body),recipient_name:safeHistoryText(r.recipient_name)})),hasMore:r.rows.length>100};}
+ if(kind==='sms'){const r=await db.query(`SELECT m.id,m.appointment_id,m.direction,m.phone,m.message,m.sender_name,m.sent_at,c.name AS client_name,a.booking_number FROM sms_messages m LEFT JOIN clients c ON c.id=m.client_id AND c.tenant_id=m.tenant_id LEFT JOIN appointments a ON a.id=m.appointment_id AND a.tenant_id=m.tenant_id WHERE m.tenant_id=$1 ORDER BY m.sent_at DESC NULLS LAST,m.id DESC LIMIT 101 OFFSET $2`,[staff.tenantId,offset]);return {messages:r.rows.slice(0,100).map(r=>({...r,message:safeHistoryText(r.message),sender_name:safeHistoryText(r.sender_name)})),hasMore:r.rows.length>100};}
+ throw new Response('Unknown communication history',{status:404});
+}

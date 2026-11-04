@@ -214,3 +214,109 @@ test vehicle records are safely supplied. No app-auth bypass is extended.
 Isolated PostgreSQL tests exercise service totals/line persistence and rejected
 cross-tenant services; hosted saves and full original wizard flow are unverified.
 Do not call this operational parity or a ready-to-cut-over migration.
+
+## Owner-approved bounded booking review
+
+Dedicated `preview/bounded-booking-review` Preview only, expires November 3 2026
+03:14 UTC. Vercel Authentication is the external identity/access gate; no app cookie
+or general admin session is created. Exact branch/environment/time checks permit
+tenant 1 reads plus POST lookup/wizard-booking ONLY. Other write resources explicitly
+reject during this window, even for that review context. Same-origin, body limits,
+existing passenger/service/tenant validation and no-message/no-payment checks remain.
+No reset-email dependency. On expiry ordinary app sign-in applies again.
+
+Protection must remain enabled on project/generated deployment URLs; no share links,
+automation bypass, browser tool bypass or production-domain alias is created. This
+permits Vercel-authorized viewers, not verified application staff; owner approved this
+limited test-booking access. Stored test bookings remain after expiration. Do not
+promote/merge this temporary design into production. Settings/assignment mutations
+are not enabled through this review capability. No hosted database writes executed
+by the agent; actual data rendering/full booking still requires owner verification.
+
+## Passenger-create integration correction
+
+Original wizard new-passenger POST now maps to an explicit tenant-scoped test API,
+with validated text/email, transaction advisory lock, duplicate email/phone matching
+within tenant and a returned ID. Duplicate records return existing_id for original
+wizard handling; ambiguous matches reject. Notification preference forced to none.
+Failed creation stops submission immediately. Existing customer profile PATCH remains
+unimplemented and is skipped in this database test rather than falsely logging success.
+
+Passenger creation and booking are separate transactions, matching original flow:
+a created passenger may remain if the subsequent booking is rejected. No claim of
+all-or-nothing passenger+booking is made. Isolated SQL test creates new passenger,
+then saves full ordinary booking/service lines, then retrieves the passenger through
+tenant-bound join. Hosted/browser save still unverified. Same exact branch/expiry
+(03:14 UTC November 3) and Vercel gate; new passenger resource explicitly added only
+to the bounded capability. No production changes or real notifications.
+
+## Specific vehicle booking support
+
+Database wizard driver-vehicle lookup is now mapped to selected-field server reads.
+A specific vehicle save must exist in tenant-bound vehicle reads and, when driver
+selected, belong to that driver's ownership/assignment relationship. Cross-tenant
+vehicle relationships reject. Chosen vehicle_id persists in booking transaction.
+No vehicle-creation/edit/delete endpoint is enabled. Isolated integration test covers
+new passenger, full ordinary payload, specific vehicle/service-line save and joined
+retrieval; invalid foreign-tenant vehicle rejects. Hosted vehicle choice not verified.
+
+Owner reported hosted booking success November 3 around 03:12 UTC; request logs show
+two 201 API responses followed by 200 database-dashboard GET, consistent with passenger
+and booking creation. Specific saved values/refresh persistence not independently
+inspected. Original temporary booking capability expires 03:14 UTC unchanged; no
+password-free extension performed. Remaining hosted verification requires authorized
+app sign-in or a separately approved bounded review window. Production unchanged.
+
+## Database-only trip navigation
+
+Database dashboard now renders an explicit database link map, not the sample map.
+All Trips anchors to database-trips, booking and assignments/settings stay on database
+routes, unknown links remain inert. Booking search binds tenant and literal substring
+search (booking number/passenger), optional TEST-% filter and bounded pagination.
+Newest-created ordering surfaces fresh tests regardless of pickup date. Each result
+links to the original assignment timeline with America/Chicago pickup-date query.
+Timeline initializes from date parameter on database route only. Other table actions
+remain disabled; temporary capability does not add assignment write rights. User must
+not interpret a date-specific read view as an enabled assignment write workflow.
+
+## Temporary TEST-only assignment capability
+
+Owner requested coherent database workflow. Existing Vercel-protected, exact-branch
+window through November 3 05:20 UTC now explicitly permits assignment PATCH for TEST-%
+booking numbers in tenant 1 only. SQL predicates enforce test-only and tenant scope;
+non-test imported bookings remain protected even if UI drag attempted. Same-origin,
+driver membership/activity validation and unchanged start_time remain enforced.
+No rescheduling, setting edits or external messages granted through temporary review.
+PGlite regression covers TEST assignment/unassignment, non-test and cross-tenant
+rejection, wrong-tenant drivers and unchanged pickup time. No actual hosted write
+verification performed by agent. User must test refresh persistence on TEST booking.
+
+## Original TEST metadata editor
+
+Database list has explicit Edit test booking links to original TripModal, reading
+selected fields/services only for TEST-% tenant-bound records. Metadata PATCH locks
+the record within transaction and validates text before update. Time, passenger,
+assignment, services/prices and unsupported changes reject rather than silently
+changing or discarding values. External actions use a dedicated failing-closed
+transport; editor API can only read scoped settings/vehicles/current passenger and
+PATCH metadata. No provider/notification handler runs. Original editor source debug
+value logging removed. Existing temporary expiry unchanged; after expiry app staff
+sign-in needed. Actual hosted UI/save unverified; regression uses query adapter.
+
+## Original passenger-facing online booking test
+
+`/preview/online-book` restores the original `/book/[slug]` customer screen and its
+passenger lookup/submission hooks, not the dispatcher variant. Preview-only server
+loader requires current approved Vercel-protected review or real app staff login.
+No public customer access route launched. Lexical transport maps selected settings,
+services, lookup, passenger-create and booking resources to existing tenant-scoped
+API; unsupported calls fail closed. Existing passenger profiles are not updated or
+listed wholesale. New passenger address/CC-email metadata is validated and stored;
+notification preference remains none. One-way only; roundtrip/recurring/tour rejected
+before passenger writes. Messages/payments and advanced modes stay disconnected.
+
+Original confirmation kept visible instead of closing window. Original pricing
+logic remains for comparison, not a proven unified calculation system; complete live
+rate parity not asserted. needs_review status now saved rather than silently pending.
+No hosted writes by agent. Actual passenger UI/end-to-end save requires owner review;
+no share link or PreviewBrowser bypass is created for private imported data.

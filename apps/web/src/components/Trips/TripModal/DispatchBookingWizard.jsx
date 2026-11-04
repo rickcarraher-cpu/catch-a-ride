@@ -1,3 +1,4 @@
+import { readWizardList } from "../../../../app/preview/read-list";
 import { sampleFetch as fetch } from "../../../../app/preview/wizard-samples";
 /**
  * Dispatch Booking Wizard - Admin version of the booking wizard
@@ -44,7 +45,7 @@ export function DispatchBookingWizard({
     queryKey: ["preferred-locations"],
     queryFn: async () => {
       const res = await fetch("/api/settings/preferred-locations");
-      return res.json();
+      return readWizardList(res);
     },
   });
 
@@ -53,8 +54,7 @@ export function DispatchBookingWizard({
     queryKey: ["vehicles"],
     queryFn: async () => {
       const res = await fetch("/api/vehicles");
-      if (!res.ok) return [];
-      return res.json();
+      return readWizardList(res);
     },
   });
 

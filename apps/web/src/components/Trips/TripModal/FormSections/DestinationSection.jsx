@@ -1,3 +1,4 @@
+import { editorFetch as fetch } from "../../../../../app/preview/editor-fetch";
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Route, PenLine, Home, Trash2, Loader2 } from "lucide-react";
 import { toast } from "@/utils/notify";

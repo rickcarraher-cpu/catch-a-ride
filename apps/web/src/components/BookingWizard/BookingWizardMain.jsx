@@ -86,6 +86,76 @@ function buildChicagoTimestamp(dateStr, timeStr) {
   return `${dateStr}T${time}:00${offset}`;
 }
 
+
+function buildReturnTripServices(data, services) {
+      // Build return trip services array (base service + incoming leg addons)
+        const returnTripServices = [];
+
+        // Add the base service to return trip
+        if (data.services && data.services.length > 0) {
+          const baseService = data.services[0]; // Primary service
+          returnTripServices.push(baseService);
+        }
+
+        // Calculate base service price for tip addon percentage calculation
+        const returnBaseServicePrice = data.services?.[0]?.service_price
+          ? Number(data.services[0].service_price)
+          : 0;
+
+        // Add incoming leg addons to return trip
+        if (data._addon_legs) {
+          const addonsList = services?.filter((s) => s.is_addon) || [];
+          Object.entries(data._addon_legs).forEach(([addonId, legs]) => {
+            if (legs.includes("incoming")) {
+              const addon = addonsList.find((a) => a.id == addonId);
+              if (addon) {
+                const customPrice = data._addon_prices?.[`${addonId}_incoming`];
+                const hasCustomPrice =
+                  customPrice !== undefined &&
+                  customPrice !== "" &&
+                  customPrice !== null;
+                let addonPrice = hasCustomPrice
+                  ? Number(customPrice)
+                  : Number(addon.default_price);
+
+                // Gas fee addons are NEVER percentage-based — always use flat dollar default_price.
+                const isGasFeeAddon = (addon.name || "")
+                  .toLowerCase()
+                  .includes("gas");
+                // FIX: Tip addons store a percentage in default_price — calculate the actual dollar amount
+                if (
+                  addon.is_tip_addon &&
+                  !isGasFeeAddon &&
+                  !hasCustomPrice &&
+                  returnBaseServicePrice > 0
+                ) {
+                  const tipPercent = Number(addon.default_price || 0);
+                  if (tipPercent > 0) {
+                    addonPrice = Math.ceil(
+                      (returnBaseServicePrice * tipPercent) / 100,
+                    );
+                  }
+                }
+
+                // Quantity-based addons (stops, car seats) keep their per-leg qty.
+                // All other addons (flat fees) always charge qty=1 per trip.
+                const needsQty =
+                  addon.name.toLowerCase().includes("stop") ||
+                  addon.name.toLowerCase().includes("car seat");
+                const rawQty = data._addon_quantities?.[addonId] || 1;
+                returnTripServices.push({
+                  service_id: addon.id,
+                  service_price: addonPrice,
+                  duration_minutes: addon.duration_minutes || 0,
+                  quantity: needsQty ? rawQty : 1,
+                });
+              }
+            }
+          });
+        }
+
+ return returnTripServices;
+}
 export function BookingWizardMain({
   settings,
   services,
@@ -289,11 +359,6 @@ export function BookingWizardMain({
       }
 
       // Regular appointment submission (existing code)
-      console.log("Mutation received data:", {
-        _is_round_trip: data._is_round_trip,
-        _return_date: data._return_date,
-        _return_time: data._return_time,
-      });
 
       // Create a clean payload without the metadata fields
       const {
@@ -305,6 +370,16 @@ export function BookingWizardMain({
         _addon_quantities,
         ...cleanPayload
       } = data;
+
+      const atomicRoundTrip = typeof window !== "undefined" && window.location.pathname === "/preview/database-book" && _is_round_trip;
+      if(atomicRoundTrip){
+        if(!_return_date||!_return_time)throw new Error("Return date and time are required");
+        const returnTripServices=buildReturnTripServices(data,services);
+
+        const returnStartTime=buildChicagoTimestamp(_return_date.includes("T")?_return_date.slice(0,10):_return_date,_return_date.includes("T")?_return_date.slice(11,16):_return_time);
+        const response=await fetch("/api/appointments/round-trip",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...cleanPayload,return_date:null,round_trip_return_time:returnStartTime,round_trip_services:returnTripServices})});
+        const result=await response.json();if(!response.ok)throw new Error(result.error||"Round-trip booking failed");return result;
+      }
 
       const res = await fetch("/api/appointments", {
         method: "POST",
@@ -334,71 +409,7 @@ export function BookingWizardMain({
           _return_time,
         );
 
-        // Build return trip services array (base service + incoming leg addons)
-        const returnTripServices = [];
-
-        // Add the base service to return trip
-        if (data.services && data.services.length > 0) {
-          const baseService = data.services[0]; // Primary service
-          returnTripServices.push(baseService);
-        }
-
-        // Calculate base service price for tip addon percentage calculation
-        const returnBaseServicePrice = data.services?.[0]?.service_price
-          ? Number(data.services[0].service_price)
-          : 0;
-
-        // Add incoming leg addons to return trip
-        if (data._addon_legs) {
-          const addonsList = services?.filter((s) => s.is_addon) || [];
-          Object.entries(data._addon_legs).forEach(([addonId, legs]) => {
-            if (legs.includes("incoming")) {
-              const addon = addonsList.find((a) => a.id == addonId);
-              if (addon) {
-                const customPrice = data._addon_prices?.[`${addonId}_incoming`];
-                const hasCustomPrice =
-                  customPrice !== undefined &&
-                  customPrice !== "" &&
-                  customPrice !== null;
-                let addonPrice = hasCustomPrice
-                  ? Number(customPrice)
-                  : Number(addon.default_price);
-
-                // Gas fee addons are NEVER percentage-based — always use flat dollar default_price.
-                const isGasFeeAddon = (addon.name || "")
-                  .toLowerCase()
-                  .includes("gas");
-                // FIX: Tip addons store a percentage in default_price — calculate the actual dollar amount
-                if (
-                  addon.is_tip_addon &&
-                  !isGasFeeAddon &&
-                  !hasCustomPrice &&
-                  returnBaseServicePrice > 0
-                ) {
-                  const tipPercent = Number(addon.default_price || 0);
-                  if (tipPercent > 0) {
-                    addonPrice = Math.ceil(
-                      (returnBaseServicePrice * tipPercent) / 100,
-                    );
-                  }
-                }
-
-                // Quantity-based addons (stops, car seats) keep their per-leg qty.
-                // All other addons (flat fees) always charge qty=1 per trip.
-                const needsQty =
-                  addon.name.toLowerCase().includes("stop") ||
-                  addon.name.toLowerCase().includes("car seat");
-                const rawQty = data._addon_quantities?.[addonId] || 1;
-                returnTripServices.push({
-                  service_id: addon.id,
-                  service_price: addonPrice,
-                  duration_minutes: addon.duration_minutes || 0,
-                  quantity: needsQty ? rawQty : 1,
-                });
-              }
-            }
-          });
-        }
+        const returnTripServices=buildReturnTripServices(data,services);
 
         // Reverse pickup/dropoff for return trip
         const returnPayload = {
@@ -781,11 +792,15 @@ export function BookingWizardMain({
             "[BookingWizard] Duplicate passenger detected, using existing client id:",
             resolvedClientId,
           );
+        } else {
+          setSubmissionError(clientData.error || 'Passenger could not be created. Booking was not submitted.');
+          return;
         }
       } catch (err) {
-        console.error("Failed to create client:", err);
+        setSubmissionError('Passenger could not be created. Booking was not submitted.');
+        return;
       }
-    } else if (resolvedClientId) {
+    } else if (resolvedClientId && window.location.pathname !== "/preview/database-book") {
       // Update existing client with latest phone/email/notification preference
       try {
         await fetch(`/api/clients/${resolvedClientId}`, {

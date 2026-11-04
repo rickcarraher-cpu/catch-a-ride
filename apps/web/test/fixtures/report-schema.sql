@@ -1,0 +1,2 @@
+-- Types/nullability from owner-provided structure.
+CREATE TABLE payments ("id" serial NOT NULL PRIMARY KEY,"appointment_id" integer,"provider" text NOT NULL,"status" text NOT NULL,"amount" numeric NOT NULL,"currency" text NOT NULL,"payment_url" text,"external_reference_id" text,"external_event_id_last" text,"metadata" jsonb,"created_at" timestamp with time zone,"updated_at" timestamp with time zone,"paid_at" timestamp with time zone,"manually_confirmed_by" text,"manually_confirmed_at" timestamp with time zone,"manual_note" text,"tour_participant_id" integer);

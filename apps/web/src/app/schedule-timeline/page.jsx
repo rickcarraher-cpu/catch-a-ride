@@ -1037,7 +1037,13 @@ function NotifyProgressModal({
 
 export default function ScheduleTimelinePage() {
   // Use CDT "today" — not browser-UTC date (would show wrong day for US timezones)
-  const [selectedDate, setSelectedDate] = useState(getTodayInCDT);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    if(typeof window!=='undefined'&&window.location.pathname==='/preview/database-assignments'){
+      const date=new URLSearchParams(window.location.search).get('date');
+      if(date&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&!Number.isNaN(Date.parse(date)))return date;
+    }
+    return getTodayInCDT();
+  });
 
   // ── Now indicator ─────────────────────────────────────────────────────────
   const [nowMinutes, setNowMinutes] = useState(() => {

@@ -1,0 +1,4 @@
+import {useQuery} from '@tanstack/react-query';
+export async function getReport(type:string,start='',end=''){const r=await fetch(`/preview/reports-api?type=${type}&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,{credentials:'same-origin'});const data=await r.json();if(!r.ok)throw new Error(data.error||'Report failed to load');return data;}
+export function useDatabaseReport(start:string,end=start){const q=useQuery({queryKey:['database-report',start,end],queryFn:()=>getReport('trips',start,end),retry:false});return {trips:q.data?.trips||[],drivers:q.data?.drivers||[],isLoading:q.isLoading,tripsError:q.error};}
+export function openReportTrip(id:number,trips:{id:number;booking_number?:string}[]){const trip=trips.find(t=>t.id===id);if(!String(trip?.booking_number||'').startsWith('TEST-')){window.alert('Imported bookings remain read-only; use a TEST booking to edit.');return;}window.location.href='/preview/database-edit?id='+id;}
