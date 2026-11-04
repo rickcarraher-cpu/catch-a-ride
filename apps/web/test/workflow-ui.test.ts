@@ -25,3 +25,6 @@ test('standalone review and trip pages contain only one original table and no di
  try{const html=renderToStaticMarkup(createElement(RouterProvider,{router}));assert.equal((html.match(/<table\b/g)||[]).length,1);assert.doesNotMatch(html,/<ul\b|Imported business settings|MUST NOT DISPLAY|Customer online booking \(test\)|Database bookings/);assert(html.includes(status?'Review Orders':'All Trips'));assert(html.includes('Assign Driver'));assert.equal(html.includes('>Approve</button>'),!!status);assert(html.includes('Previous page'));assert(html.includes('Next page'));}finally{router.dispose();}
  }
 });
+
+import {PageWithBackButton} from '../src/components/PageWithBackButton';
+test('original page back control uses canonical database dashboard',()=>{const html=renderToStaticMarkup(createElement(PageWithBackButton,{},'Settings'));assert.match(html,/href="\/preview\/database"/);assert(html.includes('Back to Dashboard'));});

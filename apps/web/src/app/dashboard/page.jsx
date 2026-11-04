@@ -447,7 +447,6 @@ export default function Dashboard() {
     },
     { label: "Calendar", href: "/calendar" },
     { label: "Calendar at a Glance", href: "/calendar-glance" },
-    { label: "Assign Drivers", href: "/schedule-builder" },
     { label: "Online Booking Link", href: "/book/catch-a-ride", newTab: true },
     { label: "Recurring Trips", href: "/recurring" },
     { label: "Blocked Times", href: "/blocked-times" },
@@ -825,12 +824,7 @@ export default function Dashboard() {
                 >
                   💍 Review Weddings
                 </a>
-                <button
-                  onClick={() => (window.location.href = "/weddings/add-trip")}
-                  className="px-2 py-1.5 bg-[#4a5568] text-white text-[11px] font-medium rounded-md hover:bg-[#3d4654] transition-all"
-                >
-                  ➕ Add Trips to Wedding
-                </button>
+
               </div>
             </div>
           )}
@@ -841,7 +835,7 @@ export default function Dashboard() {
               <div className="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-5 py-3 flex items-center gap-2">
                 <span className="text-lg">💍</span>
                 <h2 className="text-base font-bold tracking-wide uppercase">
-                  Weddings 2.0
+                  WEDDINGS
                 </h2>
                 <span className="ml-2 text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                   New
@@ -860,6 +854,12 @@ export default function Dashboard() {
                 >
                   📋 Review Wedding Bookings
                 </a>
+                <button
+                  onClick={() => (window.location.href = "/weddings/add-trip")}
+                  className="px-2 py-1.5 bg-[#4a5568] text-white text-[11px] font-medium rounded-md hover:bg-[#3d4654] transition-all"
+                >
+                  ➕ Add Trips to Wedding
+                </button>
               </div>
             </div>
           )}

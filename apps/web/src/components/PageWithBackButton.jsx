@@ -3,7 +3,7 @@
 import { ArrowLeft } from "lucide-react";
 
 export function PageWithBackButton({
-  backTo = "/preview/dashboard",
+  backTo = "/preview/database",
   backLabel = "Back to Dashboard",
   companyName = "",
   children,

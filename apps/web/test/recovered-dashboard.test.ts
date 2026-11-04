@@ -127,3 +127,10 @@ test('obsolete placeholders resolve current known destinations with no recursion
 test('obsolete sample dashboard now redirects to database dashboard',async()=>{
  const old=process.env.VERCEL_ENV;process.env.VERCEL_ENV='preview';try{const {loader}=await import('../app/preview/dashboard');const response=loader();assert.equal(response.status,302);assert.equal(response.headers.get('Location'),'/preview/database');}finally{if(old===undefined)delete process.env.VERCEL_ENV;else process.env.VERCEL_ENV=old;}
 });
+
+test('Assign Drivers appears only once and wedding-trip action belongs to renamed lower section',()=>{
+ const html=renderRecoveredDashboard('database');
+ assert.equal((html.match(/>Assign Drivers</g)||[]).length,1);
+ assert(!html.includes('Weddings 2.0'));const lower=html.indexOf('WEDDINGS</h2>');assert(lower>0);
+ const add=html.indexOf('Add Trips to Wedding');assert(add>lower);assert.equal((html.match(/Add Trips to Wedding/g)||[]).length,1);
+});
