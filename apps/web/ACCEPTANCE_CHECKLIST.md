@@ -196,3 +196,13 @@ rather than an unimplemented create route. <=1000 rows overflow fails explicitly
 Weddings 2 tables lack tenant ownership and remain blocked; no tenant-1 assumption.
 No advanced saves or generators delivered by this batch. Existing bypass expiry
 November 4 00:51 UTC unchanged; no production/provider/hosted data mutation.
+
+## Renewed window and TEST vehicle edits — November 4
+Owner approved another twelve-hour Vercel-protected test window through November 4
+13:12 UTC. Exact Preview branch and Vercel Authentication remain required; other
+scope limits unchanged. Corrected trip editor rejecting vehicle_category/vehicle_id.
+Now permits available tenant vehicle category and specific vehicle bound to current
+driver, including explicit clear. Driver/time/passenger/services/prices protected;
+no repricing or sends. Regression with owner-schema local fixtures verifies reload,
+clear, foreign/mismatched vehicle rejection and unchanged stored fare/balance/time.
+Full editing (reschedule, driver, services/prices/payment) remains incomplete.
