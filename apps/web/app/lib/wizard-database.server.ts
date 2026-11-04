@@ -1,3 +1,4 @@
+import {validateServiceLines} from './service-lines.server';
 import type {Pool} from 'pg';
 import type {Staff} from './staff-reads.server';
 import {createDatabaseBooking} from './business-write.server';
@@ -50,17 +51,7 @@ export async function saveWizardBooking(db:DB,staff:Staff,body:unknown){
    (['tour_participants','tour_itinerary'].includes(key)&&Array.isArray(value)&&value.length===0)
  );
  if(d.status!=null&&!['pending','needs_review','quote'].includes(String(d.status)))throw new Response('Unsupported booking status',{status:400});
- const lines=d.services;
- if(!Array.isArray(lines)||lines.length<1||lines.length>30)throw new Response('Select at least one service (maximum 30)',{status:400});
- let cents=0;const validated=[];
- for(const row of lines){
-  if(!row||!Number.isSafeInteger(Number(row.service_id))||Number(row.service_id)<1||!Number.isFinite(Number(row.service_price))||Number(row.service_price)<0||Number(row.service_price)>100000||!Number.isInteger(Number(row.quantity))||Number(row.quantity)<1||Number(row.quantity)>100)throw new Response('Invalid service line',{status:400});
-  const found=await db.query('SELECT id,duration_minutes FROM services WHERE id=$1 AND tenant_id=$2 AND is_active=true FOR SHARE',[Number(row.service_id),staff.tenantId]);
-  if(found.rowCount!==1)throw new Response('Service not found in your tenant',{status:404});
-  const price=Math.round(Number(row.service_price)*100);cents+=price*Number(row.quantity);
-  const duration=Number(found.rows[0].duration_minutes??75);if(!Number.isInteger(duration)||duration<0||duration>1440)throw new Response('Invalid service duration',{status:400});
-  validated.push({id:Number(row.service_id),price:price/100,quantity:Number(row.quantity),duration});
- }
+ const {cents,validated}=await validateServiceLines(db,staff,d.services);
  // Do not silently discard populated unsupported passenger/flight/admin fields.
  const supported=new Set([...textFields,...countFields,'distance_miles','is_international_flight','needs_receipt','is_tentative','client_id','employee_id','start_time','pickup_address','dropoff_address','pickup_street','pickup_city','pickup_state','pickup_zip','dropoff_street','dropoff_city','dropoff_state','dropoff_zip','notes','num_people','vehicle_category','services','vehicle_id','destination','payment_method','status','booked_by','send_notification','driver_accepted','passenger_confirmed']);
  for(const [key,value] of Object.entries(d))if(!supported.has(key)&&!inactiveTourDefault(key,value)&&value!==null&&value!==undefined&&value!==false&&value!==''&&value!==0&&!(['_addon_legs','_addon_prices','_addon_quantities'].includes(key)&&typeof value==='object'&&Object.keys(value).length===0))throw new Response(`Field ${key} is not connected yet`,{status:400});

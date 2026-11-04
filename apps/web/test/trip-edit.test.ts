@@ -47,3 +47,17 @@ test('ordinary trip details persist with money and assignment unchanged; invalid
  await run({num_car_seats:'',distance_miles:null,is_tentative:false});assert.equal((await readEditableTrip(db,staff,1)).num_car_seats,null);
  }finally{await pg.close();}
 });
+
+test('TEST service replacement preserves payments and fee amount; invalid/reduced fares rollback atomically',async()=>{
+ const pg=new PGlite();const db={query:async(q:string,p?:unknown[])=>{const r=await pg.query(q,p);return {...r,rowCount:r.affectedRows||r.rows.length};}} as unknown as Pick<Pool,'query'>;
+ try{for(const f of ['management','schedule'])await pg.exec(readFileSync(new URL(`./fixtures/${f}-schema.sql`,import.meta.url),'utf8'));
+ await pg.exec(`INSERT INTO services(id,tenant_id,name,is_active,duration_minutes) VALUES(1,1,'Local',true,75),(2,2,'Foreign',true,60);INSERT INTO appointments(id,tenant_id,start_time,booking_number,services_total,original_amount,balance_due,payments_total) VALUES(1,1,'2026-11-10T15:00Z','TEST-1',100,103,83,20);INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity) VALUES(1,1,100,75,1);`);
+ const run=async(body:unknown)=>{await pg.exec('BEGIN');try{await updateTestTrip(db,staff,1,body);await pg.exec('COMMIT');}catch(e){await pg.exec('ROLLBACK');throw e;}};
+ await run({services:[{service_id:1,service_price:60,quantity:2,duration_minutes:90,stop_description:'TEST STOP'}]});
+ const row=(await pg.query<any>('SELECT * FROM appointments WHERE id=1')).rows[0];assert.equal(Number(row.services_total),120);assert.equal(Number(row.original_amount),123);assert.equal(Number(row.balance_due),103);assert.equal(Number(row.payments_total),20);
+ const trip=await readEditableTrip(db,staff,1);assert.equal(trip.services[0].duration_minutes,90);assert.equal(trip.services[0].stop_description,'TEST STOP');
+ for(const services of [[],[{service_id:2,service_price:1,quantity:1}],[{service_id:1,service_price:1,quantity:1}],[{service_id:1,service_price:60,quantity:2,duration_minutes:-1}]])await assert.rejects(run({services}));
+ assert.equal(Number((await readEditableTrip(db,staff,1)).services[0].service_price),60);
+ await pg.exec('UPDATE appointments SET balance_due=0 WHERE id=1');await assert.rejects(run({services:[{service_id:1,service_price:80,quantity:1}]}));
+ }finally{await pg.close();}
+});

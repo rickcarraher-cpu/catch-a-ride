@@ -1,10 +1,11 @@
+import {validateServiceLines} from './service-lines.server';
 import {validateScheduleDay} from './schedule-read.server';
 import {readWizardData} from './wizard-database.server';
 import type {Pool} from 'pg';import type {Staff} from './staff-reads.server';
 type DB=Pick<Pool,'query'>;
 export async function readEditableTrip(db:DB,staff:Staff,id:number){
  if(!Number.isSafeInteger(id)||id<1)throw new Response('Invalid trip',{status:400});
- const result=await db.query(`SELECT a.id,a.client_id,a.employee_id,a.vehicle_id,a.start_time,a.status,a.booked_by,a.booker_name,a.notes,a.driver_notes,a.destination,a.pickup_address,a.pickup_street,a.pickup_city,a.pickup_state,a.pickup_zip,a.dropoff_address,a.dropoff_street,a.dropoff_city,a.dropoff_state,a.dropoff_zip,a.num_people,a.num_bags_checked,a.num_bags_carry_on,a.num_car_seats,a.num_golf_bags,a.outgoing_flight_info,a.returning_flight_info,a.return_date,a.vehicle_category,a.payment_method,a.distance_miles,a.distance_method,a.is_tentative,a.tentative_reason,a.booking_number,a.gift_certificate,a.wedding_id,c.name AS client_name,c.email AS client_email,c.phone AS client_phone
+ const result=await db.query(`SELECT a.services_total,a.balance_due,a.payments_total,a.original_amount,a.id,a.client_id,a.employee_id,a.vehicle_id,a.start_time,a.status,a.booked_by,a.booker_name,a.notes,a.driver_notes,a.destination,a.pickup_address,a.pickup_street,a.pickup_city,a.pickup_state,a.pickup_zip,a.dropoff_address,a.dropoff_street,a.dropoff_city,a.dropoff_state,a.dropoff_zip,a.num_people,a.num_bags_checked,a.num_bags_carry_on,a.num_car_seats,a.num_golf_bags,a.outgoing_flight_info,a.returning_flight_info,a.return_date,a.vehicle_category,a.payment_method,a.distance_miles,a.distance_method,a.is_tentative,a.tentative_reason,a.booking_number,a.gift_certificate,a.wedding_id,c.name AS client_name,c.email AS client_email,c.phone AS client_phone
  FROM appointments a LEFT JOIN clients c ON c.id=a.client_id AND c.tenant_id=a.tenant_id WHERE a.id=$1 AND a.tenant_id=$2 AND a.booking_number LIKE 'TEST-%'`,[id,staff.tenantId]);
  if(result.rowCount!==1)throw new Response('Test booking not found',{status:404});
  const services=await db.query(`SELECT x.service_id,x.service_price,x.duration_minutes,x.quantity,x.stop_description,s.name AS service_name FROM appointment_services x JOIN appointments a ON a.id=x.appointment_id JOIN services s ON s.id=x.service_id AND s.tenant_id=a.tenant_id WHERE a.id=$1 AND a.tenant_id=$2 ORDER BY x.id`,[id,staff.tenantId]);
@@ -37,7 +38,22 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
    for(const field of ['display_long_date','display_short_date','display_time','display_full_datetime','display_sms_datetime','display_office_datetime','display_gcal_date'])scheduleEdits[field]=null;
   }
  }
- if(d.services){if(!Array.isArray(d.services)||d.services.length!==current.services.length||d.services.some((line:any,i:number)=>['service_id','service_price','duration_minutes','quantity'].some(k=>Number(line[k]||0)!==Number(current.services[i][k]||0))||String(line.stop_description||'')!==String(current.services[i].stop_description||'')))throw new Response('Service/price changes are not enabled in this editor',{status:400});}
+ let serviceEdit:Awaited<ReturnType<typeof validateServiceLines>>|null=null;
+ const moneyEdits:Record<string,unknown>={};
+ if(Object.hasOwn(d,'services')){
+  const changed=!Array.isArray(d.services)||d.services.length!==current.services.length||d.services.some((line:any,i:number)=>!line||['service_id','service_price','duration_minutes','quantity'].some(k=>Number(line[k]??0)!==Number(current.services[i][k]??0))||String(line.stop_description||'')!==String(current.services[i].stop_description||''));
+  if(changed){
+   serviceEdit=await validateServiceLines(db,staff,d.services,true);
+   const toCents=(raw:unknown)=>{if(raw===null||raw===undefined||!Number.isFinite(Number(raw))||Number(raw)<0)throw new Response('Stored financial totals need reconciliation before price changes',{status:409});return Math.round(Number(raw)*100);};
+   const base=toCents(current.services_total),balance=toCents(current.balance_due),payments=toCents(current.payments_total);
+   const total=current.original_amount==null?base:toCents(current.original_amount);
+   if(total<base||balance!==total-payments)throw new Response('Stored financial totals need reconciliation before price changes',{status:409});
+   const newTotal=serviceEdit.cents+(total-base),newBalance=newTotal-payments;
+   if(newBalance<0)throw new Response('New fare is below recorded payments; use a separate payment adjustment workflow',{status:409});
+   moneyEdits.services_total=serviceEdit.cents/100;moneyEdits.original_amount=newTotal/100;moneyEdits.balance_due=newBalance/100;
+   // Record changes in fare only; payment ledger, tips and payment status are not edited.
+  }
+ }
  const vehicleEdits:Record<string,unknown>={};
  if(Object.hasOwn(d,'vehicle_id')){
   const raw=d.vehicle_id;const vehicle=raw===null||raw===''?null:Number(raw);
@@ -84,8 +100,12 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
  if(Object.hasOwn(detailEdits,key)||(fields as readonly string[]).includes(key)||['services','start_time','send_notification','vehicle_id','vehicle_category','employee_id'].includes(key))continue;
  if(String(value??'')!==String(current[key]??''))throw new Response(`Changing ${key} is not enabled in this metadata editor`,{status:400});
  }
- const values:Record<string,unknown>={...scheduleEdits,...vehicleEdits,...detailEdits};for(const k of fields)if(Object.hasOwn(d,k)){if(d[k]!=null&&(typeof d[k]!=='string'||String(d[k]).length>2000))throw new Response('Invalid text field',{status:400});values[k]=d[k]||null;}
+ const values:Record<string,unknown>={...scheduleEdits,...vehicleEdits,...detailEdits,...moneyEdits};for(const k of fields)if(Object.hasOwn(d,k)){if(d[k]!=null&&(typeof d[k]!=='string'||String(d[k]).length>2000))throw new Response('Invalid text field',{status:400});values[k]=d[k]||null;}
  if(!Object.keys(values).length)throw new Response('No supported changes',{status:400});
+ if(serviceEdit){
+  await db.query('DELETE FROM appointment_services WHERE appointment_id=$1',[id]);
+  for(const line of serviceEdit.validated)await db.query('INSERT INTO appointment_services(appointment_id,service_id,service_price,duration_minutes,quantity,stop_description) VALUES($1,$2,$3,$4,$5,$6)',[id,line.id,line.price,line.duration,line.quantity,line.stop]);
+ }
  const keys=Object.keys(values);await db.query(`UPDATE appointments SET ${keys.map((k,i)=>`${k}=$${i+3}`).join(',')} WHERE id=$1 AND tenant_id=$2 AND booking_number LIKE 'TEST-%'`,[id,staff.tenantId,...Object.values(values)]);
  return {id,saved:true};
 }
