@@ -36,7 +36,7 @@ export async function readStaffDashboard(db: Database, staff: Staff, page: numbe
 export async function readStaffTimeline(db: Database, staff: Staff, day: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isFinite(Date.parse(`${day}T00:00:00Z`)) || new Date(`${day}T00:00:00Z`).toISOString().slice(0,10)!==day) throw new Response('Invalid date',{status:400});
   const drivers=await db.query(`SELECT id, name, color, is_active FROM employees WHERE tenant_id=$1 AND is_active=true ORDER BY name LIMIT 200`,[staff.tenantId]);
-  const trips=await db.query(`SELECT a.id,a.start_time,a.status,a.booking_number,a.employee_id,a.pickup_address,a.dropoff_address,a.vehicle_category,a.num_people,a.is_tentative,a.tentative_reason,c.name AS client_name,e.name AS employee_name,60 AS duration_minutes
+  const trips=await db.query(`SELECT a.id,a.start_time,a.status,a.booking_number,a.employee_id,a.pickup_address,a.dropoff_address,a.vehicle_category,a.num_people,a.is_tentative,a.tentative_reason,c.name AS client_name,e.name AS employee_name,COALESCE((SELECT sum(x.duration_minutes * coalesce(x.quantity,1)) FROM appointment_services x JOIN services s ON s.id=x.service_id AND s.tenant_id=a.tenant_id WHERE x.appointment_id=a.id),60) AS duration_minutes,NOT EXISTS(SELECT 1 FROM appointment_services x JOIN services s ON s.id=x.service_id AND s.tenant_id=a.tenant_id WHERE x.appointment_id=a.id) AS duration_estimated
     FROM appointments a LEFT JOIN clients c ON c.id=a.client_id AND c.tenant_id=a.tenant_id
     LEFT JOIN employees e ON e.id=a.employee_id AND e.tenant_id=a.tenant_id
     WHERE a.tenant_id=$1 AND a.start_time >= ($2::date::timestamp AT TIME ZONE 'America/Chicago')

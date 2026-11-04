@@ -17,7 +17,7 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
  if(!d||typeof d!=='object'||Array.isArray(d))throw new Response('Invalid edit',{status:400});
  if(d.send_notification===true)throw new Response('Choose Save Without Sending',{status:400});
  // Preserve original services/prices/identity unless explicitly supported below. Do not silently lose attempted changes.
- for(const key of ['client_id','status','payment_method'])if(d[key]!=null&&String(d[key])!==String(current[key]??''))throw new Response(`Changing ${key} is not enabled in this metadata editor`,{status:400});
+ for(const key of ['client_id','status'])if(d[key]!=null&&String(d[key])!==String(current[key]??''))throw new Response(`Changing ${key} is not enabled in this metadata editor`,{status:400});
  const scheduleEdits:Record<string,unknown>={};
  let effectiveDriver=current.employee_id??null;
  if(Object.hasOwn(d,'employee_id')){
@@ -59,6 +59,8 @@ export async function updateTestTrip(db:DB,staff:Staff,id:number,body:unknown){
   vehicleEdits.vehicle_category=d.vehicle_category;
  }
  const detailEdits:Record<string,unknown>={};
+ if(Object.hasOwn(d,'payment_method')){const value=d.payment_method;if(value!==null&&value!==''&&(typeof value!=='string'||!['Cash','Farm','Square Invoice','Venmo','Zelle','Comp','Other','Credit Card','Square','Stripe'].includes(value)))throw new Response('Unsupported payment preference',{status:400});detailEdits.payment_method=value||null;detailEdits.display_payment_method=null;}
+
  const countFields=['num_people','num_bags_checked','num_bags_carry_on','num_car_seats','num_golf_bags'];
  for(const key of countFields)if(Object.hasOwn(d,key)){
   const raw=d[key];
