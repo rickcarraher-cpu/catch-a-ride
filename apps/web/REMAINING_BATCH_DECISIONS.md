@@ -42,3 +42,19 @@ lock; identical retries reuse ledger entry, conflicting retries fail. Booking an
 ledger updates occur in a transaction. Reversal appends negative test entry once,
 retains original record, and updates only stored totals. Imported payments cannot
 be reversed by this route. No automatic hosted payment write in verification.
+
+## November 4 Close Up export checkpoint
+Close Up can download an operational SUBSET, not a full database backup/restore.
+Repeatable-read read-only snapshot, seven explicit table projections, counts and
+SHA-256 over JSON.stringify(records). Credentials/authentication, ALL settings,
+action tokens, ledger/payroll and advanced tables excluded. Owner-linked vehicles
+with foreign assignments excluded; missing/orphan service relations excluded.
+This intentional filtering prevents leakage but means the export is not complete
+migration parity. >10,000 rows/table or >15MiB rejects, never partial download.
+No backup timestamp/acknowledgement flag is written. Keep customer-data download
+local; browser verification does not download hosted customer records.
+
+Original /weddings/add-trip route is referenced by the dashboard but its page
+implementation does not exist in recovered source. This is not restorable wiring:
+need owner decision to defer the original missing feature or specify new behavior.
+Do not assume a new wedding workflow or claim all remaining work is complete.

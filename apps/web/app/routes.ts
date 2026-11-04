@@ -26,6 +26,7 @@ export default [
   route("preview/weddings-2-review", "preview/restored-reviews.tsx", {id:"database-weddings-2-review"}),
   route("preview/payment-ledger-api", "preview/payment-ledger-api.ts"),
   route("preview/payments", "preview/payments.tsx"),
+  route("preview/close-up-export", "preview/close-up-export.ts"),
   route("preview/close-up", "preview/close-up.tsx"),
   route("preview/driver-messages-api", "preview/driver-messages-api.ts"),
   route("preview/driver-messages", "preview/driver-messages.tsx"),
