@@ -83,3 +83,9 @@ test('payment report and recurring review links are connected',()=>{
  for(const name of ['weekly-payments','payments-by-method'])assert.equal(databaseDashboardLink('/reports/'+name),'/preview/reports/'+name);
  assert.equal(databaseDashboardLink('/recurring'),'/preview/recurring');
 });
+
+test('partner tour and original wedding list destinations are connected',()=>{
+ assert.equal(databaseDashboardLink('/third-party-trips'),'/preview/advanced/third-party');
+ assert.equal(databaseDashboardLink('/tours'),'/preview/advanced/tours');
+ assert.equal(databaseDashboardLink('/weddings'),'/preview/advanced/weddings');
+});

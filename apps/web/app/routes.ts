@@ -20,6 +20,8 @@ export default [
   route("preview/blocked-times", "preview/operational-pages.tsx", {id:"database-blocked-times"}),
   route("preview/manage-availability", "preview/operational-pages.tsx", {id:"database-manage-availability"}),
   route("preview/communication-log", "preview/operational-pages.tsx", {id:"database-communication-log"}),
+  route("preview/advanced-api", "preview/advanced-api.ts"),
+  route("preview/advanced/:kind", "preview/advanced.tsx"),
   route("preview/recurring", "preview/recurring.tsx"),
   route("preview/reports-api", "preview/reports-api.ts"),
   route("preview/reports/:section", "preview/reports.tsx"),

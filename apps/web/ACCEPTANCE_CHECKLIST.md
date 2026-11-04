@@ -184,3 +184,15 @@ editor. Recurring Trips original table shows imported active definitions, time,
 frequency, driver, occurrences and stored service durations; all generators and
 create/edit/delete disabled. This is read-only recurring review, not completion of
 recurring booking functionality. Existing access expiry unchanged.
+
+## Original advanced list batch
+Third-Party Drives, Tours and original Wedding Packages list/search screens restored.
+Read-only records scoped by tenant; related passenger/employee/partner ownership and
+child participants/itinerary restricted through the scoped parent. Tours/Weddings
+cards open a plainly labeled record-review overlay, NOT original operational
+editors. Third-party row navigates to existing database search. Creation/payment/
+message/delete controls disabled, including third-party new=true link mapped to list
+rather than an unimplemented create route. <=1000 rows overflow fails explicitly.
+Weddings 2 tables lack tenant ownership and remain blocked; no tenant-1 assumption.
+No advanced saves or generators delivered by this batch. Existing bypass expiry
+November 4 00:51 UTC unchanged; no production/provider/hosted data mutation.
