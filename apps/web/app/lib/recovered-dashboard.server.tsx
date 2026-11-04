@@ -14,6 +14,9 @@ export function sampleDashboardLink(href: string): string | null {
 
 export function databaseDashboardLink(href:string):string|null {
  if(href==='/preview/feature?destination=%2Fclose-up')return '/preview/close-up';
+ if(href==='/timesheet-report')return '/preview/timesheet-report';
+ if(href==='/weddings-2')return '/preview/weddings-2';
+ if(href==='/weddings-2/review')return '/preview/weddings-2-review';
  if(href==='/payments')return '/preview/payments';
  if(href==='/close-up')return '/preview/close-up';
  if(href==='/preview/feature?destination=%2Freceipts-needed')return '/preview/receipts-needed';

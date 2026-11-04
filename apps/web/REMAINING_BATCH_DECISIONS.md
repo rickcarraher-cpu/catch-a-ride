@@ -4,24 +4,20 @@ Owner requested all seven remaining dashboard destinations as one testable batch
 Do not hand off a partial release as that outcome. Current protected testing deadline
 remains November 4 13:12 UTC; production and signup project excluded.
 
-## Confirmed blockers needing owner decision
+## Owner decisions resolved November 4
 
-### Timesheet / payroll
-Original `api/timesheets` reconstructs commission as services_total times effective
-rate and adds computed gas reimbursements, tips, and cash deductions. Original
-Payments page also independently estimates commission as 20% of payment amounts.
-This conflicts with owner's stated direction to read Trip database values and not
-recalculate differently in reports. Need explicit decision: historical stored
-`driver_commission` as authoritative, with missing values flagged unavailable, or
-preserve legacy live formula until centralized migration is separately reviewed.
-Do not substitute zero for missing payroll or certify unreconciled copies as payroll.
+Payroll: owner corrected the earlier statement. Commission is calculated, not
+stored authoritatively. Preserve inspected live calculation using stored Trip
+inputs, service reimbursements, and cash ledger deductions; place in one shared
+server module. Stored driver_commission is not trusted. Default-rate/fallback
+behavior deliberately preserved from inspected legacy code; test with actual
+business examples before payroll use.
 
-### Weddings 2 ownership
-Owner-supplied schema shows wedding_bookings_2 has no tenant_id, client_id, wedding_id
-or other verified business-ownership relation. This is distinct from weddings table
-which has tenant_id. Need explicit mapping of existing Wedding 2 rows to tenant(s),
-and a tenant-aware schema migration/export. Do not expose every row as tenant 1.
-This affects two destinations: /weddings-2 and /weddings-2/review.
+Weddings 2: owner explicitly confirms all existing records belong to tenant 1 and
+that this feature is under development. Read policy is an explicit legacy-table
+ownership rule, not a generic fallback. Tenant 2 must be rejected. No schema
+mutation or assumption about future multi-tenant writes. Original form/review may
+be inspected, but unverified writes and external sends stay blocked.
 
 ## Still implementation work, not owner blockers
 - /trips?new=true&tour=true: original advanced tour booking persistence/participants/

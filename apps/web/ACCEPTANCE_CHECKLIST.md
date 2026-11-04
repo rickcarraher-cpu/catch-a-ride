@@ -232,3 +232,18 @@ Close Up is explicitly a new count checklist, NOT original backup functionality.
 No net commission estimated as fixed 20%; unknown commission displayed unavailable.
 All imported financial records remain unmodified; hosted payment mutations not
 performed automatically. No expiry extension or production changes.
+
+## Payroll / Weddings 2 decision implementation — November 4
+Owner corrected commission: calculated, not stored. One shared server module now
+matches inspected live services_total * effective trip/default rate, reimbursement,
+tips and cash deduction rules. Legacy rate ||0.75/missing-zero fallbacks preserved
+explicitly for migration compatibility, not silently replaced with new rules.
+Original Timesheet screen read-only with date/driver/print controls; no approval,
+ADP submission or rate edits. Payroll calculation snapshot is not certified live
+accounting; copied inputs may be incomplete. Other original helper APIs remain
+unregistered; no claim of full application-wide centralization yet.
+Owner confirms legacy Weddings2 existing rows all tenant1. Read policy explicitly
+allows only tenant1, excludes notification_state/metadata; original form/review
+restored for inspection. New form drafts local under preview-only storage key;
+submit/save/quote/send remain under development and blocked. No hosted wedding/
+payroll mutations or migration. Existing access expiry unchanged.
