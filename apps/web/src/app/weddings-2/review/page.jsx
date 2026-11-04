@@ -128,7 +128,7 @@ export default function Weddings2ReviewPage() {
               </div>
             </div>
             <a
-              href="/weddings-2"
+              href="/preview/weddings-2"
               className="flex items-center gap-2 px-4 py-2.5 bg-white text-rose-700 text-sm font-semibold rounded-xl hover:bg-rose-50 transition-all shadow-md no-underline"
             >
               <Heart size={18} />
