@@ -80,7 +80,7 @@ export function useBookingSubmit(
       }
 
       setValidationErrors([]);
-      if (window.location.pathname === "/preview/online-book" && (data.is_round_trip || data.is_recurring || data.is_tour)) throw new Error("Round-trip, recurring and tour online booking are not connected yet; no records were submitted.");
+      if (window.location.pathname === "/preview/online-book" && (data.is_recurring || data.is_tour)) throw new Error("Recurring and tour online booking are not connected yet; no records were submitted.");
 
       // Build pickup_address from structured fields if available, otherwise use pickup field
       let pickupAddress = data.pickup || null;
@@ -341,10 +341,12 @@ export function useBookingSubmit(
       }
 
       // 5. Create the first appointment (or only appointment if not round trip)
-      const res = await fetch("/api/appointments", {
+      const atomicRoundTrip = window.location.pathname === "/preview/online-book" && data.is_round_trip;
+      const res = await fetch(atomicRoundTrip ? "/api/appointments/round-trip" : "/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...(atomicRoundTrip ? { round_trip_return_time: buildChicagoTimestamp(data.return_date, data.return_time) } : {}),
           client_id: clientId,
           start_time: buildChicagoTimestamp(data.date, data.time),
           status: bookedBy === "Online" ? "needs_review" : "approved",
@@ -397,7 +399,7 @@ export function useBookingSubmit(
       const result = await res.json();
 
       // 5b. If round trip, create the return trip appointment
-      if (data.is_round_trip && data.return_date && data.return_time) {
+      if (data.is_round_trip && data.return_date && data.return_time && !result.return_trip) {
         // Swap pickup/dropoff for return trip - swap BOTH flat strings AND structured fields
         // Return trip pickup = original dropoff
         const returnPickupAddress = dropoffAddress || null;

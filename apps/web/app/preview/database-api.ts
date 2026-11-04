@@ -1,3 +1,4 @@
+import {saveRoundTrip} from '../lib/round-trip.server';
 import {readManagement} from '../lib/management-read.server';
 import {readMessages} from '../lib/messages-read.server';
 import {reviewTestOrder} from '../lib/review-order.server';
@@ -39,7 +40,7 @@ export async function action({request}:ActionFunctionArgs){
  const review=bookingReviewEnabled();
  if(review&&!bookingReviewResource(resource))throw new Response('Temporary review allows only passenger lookup and limited test booking',{status:403});
  const staff=review?BOOKING_REVIEW_STAFF:await resolveStaff(getDatabase(),await getAuth().getUser(request));
- if(!['assignment','settings','booking','wizard-booking','lookup','passenger','trip-edit','review-order'].includes(resource||''))throw new Response('Write unavailable',{status:405});
+ if(!['assignment','settings','booking','wizard-booking','wizard-round-trip','lookup','passenger','trip-edit','review-order'].includes(resource||''))throw new Response('Write unavailable',{status:405});
  if(resource==='lookup'&&request.method==='POST'){const d=await request.json();const matches=await readWizardData(getDatabase(),staff,'clients',String(d.value||''));return Response.json({found:matches.length>0,client:matches[0]||null,all_matches:matches},{headers:{'Cache-Control':'no-store'}});}
  const raw=url.searchParams.get('id')||'';
  if(['assignment','trip-edit','review-order'].includes(resource||'')&&!/^[1-9]\d{0,9}$/.test(raw))throw new Response('Invalid trip',{status:400});
@@ -51,6 +52,7 @@ export async function action({request}:ActionFunctionArgs){
  const passenger=await inBusinessTransaction(getDatabase(),db=>createTestPassenger(db,staff,body));
  return Response.json(passenger,{status:passenger.existing_id?409:201,headers:{'Cache-Control':'no-store'}});
  }
+ if(resource==='wizard-round-trip'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveRoundTrip(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource==='wizard-booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveWizardBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});
  if(resource==='settings'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>saveBusinessSetting(db,staff,body)),{headers:{'Cache-Control':'no-store'}});
  if(resource==='booking'&&request.method==='POST')return Response.json(await inBusinessTransaction(getDatabase(),db=>createDatabaseBooking(db,staff,body)),{status:201,headers:{'Cache-Control':'no-store'}});

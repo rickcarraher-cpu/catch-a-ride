@@ -92,6 +92,7 @@ export async function sampleFetch(input: string, init?: RequestInit) {
     const url=new URL(input,window.location.origin);let resource='';
     const method=(init?.method||'GET').toUpperCase();
     if(url.pathname==='/api/clients'&&method==='POST')resource='passenger';
+    else if(url.pathname==='/api/appointments/round-trip'&&method==='POST')resource='wizard-round-trip';
     else if(url.pathname==='/api/appointments'&&method==='POST')resource='wizard-booking';
     else if(url.pathname==='/api/appointments/lookup'&&method==='POST')resource='lookup';
     else if(method==='GET')resource=({'/api/services':'services','/api/settings':'settings','/api/vehicles':'vehicles','/api/clients':'clients','/api/vehicle-assignments':'vehicle-assignments'} as Record<string,string>)[url.pathname]||'';
