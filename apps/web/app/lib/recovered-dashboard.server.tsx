@@ -13,6 +13,9 @@ export function sampleDashboardLink(href: string): string | null {
 }
 
 export function databaseDashboardLink(href:string):string|null {
+ if(href==='/preview/feature?destination=%2Fclose-up')return '/preview/close-up';
+ if(href==='/payments')return '/preview/payments';
+ if(href==='/close-up')return '/preview/close-up';
  if(href==='/preview/feature?destination=%2Freceipts-needed')return '/preview/receipts-needed';
  if(href.startsWith('/preview/feature?destination='))return href;
  if(['/drivers','/vehicles','/passengers','/services'].includes(href))return '/preview/manage/'+href.slice(1);

@@ -220,3 +220,15 @@ formatters reflect new pickup; prices/services/passenger/status/payment protecte
 No overlap/availability optimization or conflict-free promise. Save transaction and
 TEST/tenant scope retained; imported non-test bookings remain read-only. Existing
 protected expiry November 4 13:12 UTC unchanged; not an app-wide login bypass.
+
+## Consolidated remaining-batch checkpoint
+Whole-seven target NOT complete. Concrete payroll-calculation and Weddings 2 owner
+mapping decisions documented in REMAINING_BATCH_DECISIONS.md; tour and wedding-trip
+creation/backup are still implementation work, not completed by placeholders.
+Payments original ledger connected with manual TEST-entry dialog (new, not the
+original provider modal). Idempotent TEST-payment record/reversal, no charge/refund/
+sends; reversal adds offset record instead of deleting historical payments.
+Close Up is explicitly a new count checklist, NOT original backup functionality.
+No net commission estimated as fixed 20%; unknown commission displayed unavailable.
+All imported financial records remain unmodified; hosted payment mutations not
+performed automatically. No expiry extension or production changes.

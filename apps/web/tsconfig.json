@@ -20,6 +20,7 @@
     "test/expenses-review.test.ts",
     "test/advanced-read.test.ts",
     "test/driver-messages.test.ts",
+    "test/test-payments.test.ts",
     "test/temporary-review.test.ts",
     "test/auth-pool.test.ts",
     "test/reset-diagnostics.test.ts",

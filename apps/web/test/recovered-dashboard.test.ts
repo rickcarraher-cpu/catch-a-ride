@@ -50,7 +50,7 @@ test('database dashboard cannot route enabled links to sample pages',()=>{
 test('review orders and online booking use real test destinations; unfinished links disclose status',()=>{
  assert.equal(databaseDashboardLink('/trips?status=needs_review'),'/preview/database?status=needs_review#database-trips');
  assert.equal(databaseDashboardLink('/book/catch-a-ride'),'/preview/online-book');
- assert.ok(databaseDashboardLink('/payments')?.startsWith('/preview/feature?'));
+ assert.ok(databaseDashboardLink('/weddings-2')?.startsWith('/preview/feature?'));
  assert.equal(databaseDashboardLink('//outside.example'),null);
 });
 
@@ -92,4 +92,9 @@ test('partner tour and original wedding list destinations are connected',()=>{
 
 test('driver message history has its own protected original screen',()=>{
  assert.equal(databaseDashboardLink('/driver-messages'),'/preview/driver-messages');
+});
+
+test('ledger and Close Up checklist have real protected routes',()=>{
+ assert.equal(databaseDashboardLink('/payments'),'/preview/payments');
+ assert.ok(renderRecoveredDashboard('database').includes('href="/preview/close-up"'));
 });
