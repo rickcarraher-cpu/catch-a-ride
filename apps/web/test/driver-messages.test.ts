@@ -1,0 +1,8 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {PGlite} from '@electric-sql/pglite';import type {Pool} from 'pg';import {readDriverMessages} from '../app/lib/driver-messages.server';
+const staff={employeeId:51,tenantId:1,isAdmin:false,isDispatcher:true};
+test('driver history scopes employee and messages, normalizes US numbers and strips live links',async()=>{const pg=new PGlite();const db={query:(s:string,p?:unknown[])=>pg.query(s,p)} as unknown as Pick<Pool,'query'>;try{
+ for(const f of ['management','availability-history'])await pg.exec(readFileSync(new URL(`./fixtures/${f}-schema.sql`,import.meta.url),'utf8'));
+ await pg.exec(`INSERT INTO employees(tenant_id,name,phone) VALUES(1,'LOCAL','(555) 010-1234'),(2,'FOREIGN','5550109999');INSERT INTO sms_messages(tenant_id,phone,message,direction,sent_at) VALUES(1,'+15550101234','LOCAL https://live.invalid/SECRET','inbound',now()),(2,'+15550101234','FOREIGN MESSAGE','inbound',now()),(2,'+15550109999','FOREIGN THREAD','inbound',now());`);
+ const list=await readDriverMessages(db,staff);assert('employees' in list&&list.employees);assert.equal(list.employees.length,1);assert(list.conversations);assert.equal(list.conversations[0].unread_count,1);assert(!JSON.stringify(list).includes('SECRET'));assert(!JSON.stringify(list).includes('FOREIGN'));
+ const thread=await readDriverMessages(db,staff,'+15550101234');assert('messages' in thread&&thread.messages);assert.equal(thread.messages.length,1);assert(!thread.messages[0].message.includes('https://'));await assert.rejects(readDriverMessages(db,staff,'5550109999'));await assert.rejects(readDriverMessages(db,staff,"bad'phone"));
+ }finally{await pg.close();}});

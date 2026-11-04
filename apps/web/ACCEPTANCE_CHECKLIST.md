@@ -206,3 +206,17 @@ driver, including explicit clear. Driver/time/passenger/services/prices protecte
 no repricing or sends. Regression with owner-schema local fixtures verifies reload,
 clear, foreign/mismatched vehicle rejection and unchanged stored fare/balance/time.
 Full editing (reschedule, driver, services/prices/payment) remains incomplete.
+
+## Driver history + TEST reschedule batch — November 4
+Original Driver Messages connected to tenant-bound driver list and individual SMS
+history; phone normalization supports US formatted/+1 variants. Group operations,
+sends, read-state changes and cleanup disabled; no external deliveries. Thread cap
+500 and driver/conversation cap 1000 fail explicitly. History strips live links.
+
+TEST editor now supports explicit timezone pickup changes and eligible tenant driver
+changes. Retained/specified vehicle must match new driver or be explicitly cleared.
+Stored display date/time caches invalidated on reschedule so existing fallback
+formatters reflect new pickup; prices/services/passenger/status/payment protected.
+No overlap/availability optimization or conflict-free promise. Save transaction and
+TEST/tenant scope retained; imported non-test bookings remain read-only. Existing
+protected expiry November 4 13:12 UTC unchanged; not an app-wide login bypass.

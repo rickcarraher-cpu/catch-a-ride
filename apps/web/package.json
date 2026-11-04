@@ -6,7 +6,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "test:staff": "tsx --test test/staff-reads.test.ts test/temporary-review.test.ts test/assignment-write.test.ts test/business-write.test.ts test/wizard-database.test.ts test/passenger-write.test.ts test/trip-edit.test.ts test/workflow.test.ts test/review-order.test.ts test/messages-read.test.ts test/management-read.test.ts test/management-write.test.ts test/schedule-read.test.ts test/report-read.test.ts test/availability-history.test.ts test/expenses-review.test.ts test/advanced-read.test.ts",
+    "test:staff": "tsx --test test/staff-reads.test.ts test/temporary-review.test.ts test/assignment-write.test.ts test/business-write.test.ts test/wizard-database.test.ts test/passenger-write.test.ts test/trip-edit.test.ts test/workflow.test.ts test/review-order.test.ts test/messages-read.test.ts test/management-read.test.ts test/management-write.test.ts test/schedule-read.test.ts test/report-read.test.ts test/availability-history.test.ts test/expenses-review.test.ts test/advanced-read.test.ts test/driver-messages.test.ts",
     "test:workflow-ui": "tsx --test test/workflow-ui.test.ts",
     "test:auth": "tsx --test test/auth.test.ts test/auth-pool.test.ts test/reset-diagnostics.test.ts",
     "test:wizard": "tsx --test test/wizard-samples.test.ts",

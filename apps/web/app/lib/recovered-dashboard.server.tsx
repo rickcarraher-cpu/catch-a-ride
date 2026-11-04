@@ -23,6 +23,7 @@ export function databaseDashboardLink(href:string):string|null {
  if(href==='/third-party-trips'||href==='/third-party-trips?new=true')return '/preview/advanced/third-party';
  if(href==='/tours')return '/preview/advanced/tours';
  if(href==='/weddings')return '/preview/advanced/weddings';
+ if(href==='/driver-messages')return '/preview/driver-messages';
  if(href==='/recurring')return '/preview/recurring';
  if(href==='/expenses')return '/preview/expenses';
  if(href==='/five-pm-reminder')return '/preview/five-pm-reminder';

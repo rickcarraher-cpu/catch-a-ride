@@ -89,3 +89,7 @@ test('partner tour and original wedding list destinations are connected',()=>{
  assert.equal(databaseDashboardLink('/tours'),'/preview/advanced/tours');
  assert.equal(databaseDashboardLink('/weddings'),'/preview/advanced/weddings');
 });
+
+test('driver message history has its own protected original screen',()=>{
+ assert.equal(databaseDashboardLink('/driver-messages'),'/preview/driver-messages');
+});

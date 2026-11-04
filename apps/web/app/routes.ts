@@ -20,6 +20,8 @@ export default [
   route("preview/blocked-times", "preview/operational-pages.tsx", {id:"database-blocked-times"}),
   route("preview/manage-availability", "preview/operational-pages.tsx", {id:"database-manage-availability"}),
   route("preview/communication-log", "preview/operational-pages.tsx", {id:"database-communication-log"}),
+  route("preview/driver-messages-api", "preview/driver-messages-api.ts"),
+  route("preview/driver-messages", "preview/driver-messages.tsx"),
   route("preview/advanced-api", "preview/advanced-api.ts"),
   route("preview/advanced/:kind", "preview/advanced.tsx"),
   route("preview/recurring", "preview/recurring.tsx"),
