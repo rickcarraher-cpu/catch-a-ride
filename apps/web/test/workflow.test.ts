@@ -16,10 +16,11 @@ test('database workflow: passenger -> online request -> review -> edit -> assign
  await pg.exec('BEGIN');const saved=await saveWizardBooking(db,staff,{client_id:person.id,start_time:'2026-11-10T08:50:00-06:00',pickup_address:'Test A',dropoff_address:'Test B',destination:'Test destination',distance_miles:28.5,status:'needs_review',payment_method:'Cash',send_notification:false,services:[{service_id:1,service_price:84,quantity:1}],is_tour:false,tour_payment_split:'single',tour_participants:[],tour_itinerary:[]});await pg.exec('COMMIT');
  let queue=await readStaffDashboard(db,staff,1,'',true,'needs_review');assert.equal(queue.trips.length,1);assert.equal(Number(queue.trips[0].balance_due),84);assert.equal(Number(queue.trips[0].distance_miles),28.5);
  await pg.exec('BEGIN');await updateTestTrip(db,staff,saved.id,{notes:'Edited TEST ONLY',send_notification:false});await pg.exec('COMMIT');
- const reread=await readEditableTrip(db,staff,saved.id);assert.equal(reread.notes,'Edited TEST ONLY');assert.equal(reread.services.length,1);
+ const reread=await readEditableTrip(db,staff,saved.id);assert.equal(reread.notes,'Edited TEST ONLY');assert.equal(reread.services.length,1);assert.equal(Number(reread.original_amount),84);assert.equal(Number(reread.payments_total),0);
+ await pg.exec('BEGIN');await updateTestTrip(db,staff,saved.id,{services:[{service_id:1,service_price:85,quantity:1,duration_minutes:80}]});await pg.exec('COMMIT');const repriced=await readEditableTrip(db,staff,saved.id);assert.equal(Number(repriced.balance_due),85);assert.equal(Number(repriced.original_amount),85);assert.equal(repriced.services[0].duration_minutes,80);
  await assignDatabaseTrip(db,staff,saved.id,{employee_id:51},true);let timeline=await readStaffTimeline(db,staff,'2026-11-10');assert.equal(timeline.trips[0].employee_id,51);
  assert.equal(new Date(timeline.trips[0].start_time).toISOString(),'2026-11-10T14:50:00.000Z');
  await assignDatabaseTrip(db,staff,saved.id,{employee_id:null},true);timeline=await readStaffTimeline(db,staff,'2026-11-10');assert.equal(timeline.trips[0].employee_id,null);
- queue=await readStaffDashboard(db,staff,1,'TEST-',true,'needs_review');assert.equal(queue.trips.length,1);assert.equal(Number(queue.trips[0].balance_due),84);
+ queue=await readStaffDashboard(db,staff,1,'TEST-',true,'needs_review');assert.equal(queue.trips.length,1);assert.equal(Number(queue.trips[0].balance_due),85);
  }finally{await pg.close();}
 });

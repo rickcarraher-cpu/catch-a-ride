@@ -1179,6 +1179,7 @@ export function TripModal({
               settings={settings}
             />
 
+            {mutation.isError && <p role="alert" className="mx-6 my-3 rounded-lg bg-red-50 p-3 text-red-800">Save failed: {mutation.error?.message || "Unable to save trip"}. Your changes were not saved.</p>}
             <TripModalFooter
               formData={formData}
               setFormData={setFormData}
